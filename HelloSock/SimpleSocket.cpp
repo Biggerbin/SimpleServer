@@ -48,14 +48,7 @@ if (isRun()) {
 #else
 		close(sock);
 #endif // WIN32
-	}
-else {
-	#ifdef WIN32
-		closesocket(sock);
-		WSACleanup();
-	#else
-		close(sock);
-	#endif // WIN32
+		sock = INVALID_SOCKET;
 }
 
 }
@@ -87,6 +80,14 @@ int SimpleServer::onRun()
 				FD_SET(_cli_sock, &read_set);
 				client_sockfd.push_back(_cli_sock);
 				max_fd = max_fd < _cli_sock ? _cli_sock : max_fd;
+				NewUser newuser;
+				newuser.result = 1;
+				newuser.sock = _cli_sock;
+				for (int i = 0; i < client_sockfd.size(); ++i) {
+					if (FD_ISSET(client_sockfd[i], &read_set) && client_sockfd[i] != _sock) {
+						send(client_sockfd[i], (const char*)&newuser, newuser.data_length, 0);
+					}
+				}
 			}
 
 			for (int i = 0; i < client_sockfd.size(); ++i) {
@@ -116,6 +117,14 @@ void SimpleServer::process(SOCKET sock_fd) {
 		FD_CLR(sock_fd, &read_set);
 		client_sockfd.erase(find(client_sockfd.begin(), client_sockfd.end(), sock_fd));
 		close(sock_fd);
+		NewUser newuser;
+		newuser.result = 0;
+		newuser.sock = _cli_sock;
+		for (int i = 0; i < client_sockfd.size(); ++i) {
+			if (FD_ISSET(client_sockfd[i], &read_set) && client_sockfd[i] != _sock) {
+				send(client_sockfd[i], (const char*)&newuser, newuser.data_length, 0);
+			}
+		}
 		return;
 	}
 	switch (dataheader.cmd) {
