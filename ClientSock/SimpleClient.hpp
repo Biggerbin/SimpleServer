@@ -18,6 +18,16 @@
 #include <string>
 #include <DataHeader.hpp>
 
+#define RECV_BUF_SIZE 10240
+
+struct RecvBuf {
+	//接收缓冲区
+	char _recvBuf1[RECV_BUF_SIZE] = {};
+	//第二缓冲区
+	char _szMsgBuf2[RECV_BUF_SIZE * 10] = {};
+	int _lastPos = 0;
+};
+
 class SimpleClient
 {
 public:
@@ -42,6 +52,8 @@ public:
 private:
 	SOCKET _sock;
 	fd_set read_set;
+	//接收缓冲区
+	RecvBuf* _recvBuf;
 };
 
 #endif // !1

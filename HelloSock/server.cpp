@@ -5,7 +5,7 @@ int main() {
 	SOCKET sock = simple_server.InitSocket(8080);
 	simple_server.onRun();
 
-	simple_server.close(sock);
+	simple_server.Close();
 	getchar();
 	return 0;
 }

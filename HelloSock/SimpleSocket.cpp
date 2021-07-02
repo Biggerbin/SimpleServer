@@ -40,15 +40,25 @@ SOCKET SimpleServer::InitSocket(int port)
 	return _sock;
 }
 
-void SimpleServer::close(SOCKET sock)
+void SimpleServer::Close()
 {
 if (isRun()) {
 #ifdef WIN32
-		closesocket(sock);
+		closesocket(_sock);
+		for (auto& recvBuf : client_sockfd) {
+			closesocket(recvBuf->_cli_sock);
+			delete recvBuf;
+}
 #else
+		for (auto& recvBuf : client_sockfd) {
+			close(recvBuf->_cli_sock);
+			delete recvBuf;
+		}
 		close(sock);
 #endif // WIN32
-		sock = INVALID_SOCKET;
+		_sock = INVALID_SOCKET;
+		client_sockfd.clear();
+
 }
 
 }
@@ -78,21 +88,22 @@ int SimpleServer::onRun()
 				}
 				printf("new client 建立, ip = %s, port = %d\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
 				FD_SET(_cli_sock, &read_set);
-				client_sockfd.push_back(_cli_sock);
-				max_fd = max_fd < _cli_sock ? _cli_sock : max_fd;
 				NewUser newuser;
 				newuser.result = 1;
 				newuser.sock = _cli_sock;
 				for (int i = 0; i < client_sockfd.size(); ++i) {
-					if (FD_ISSET(client_sockfd[i], &read_set) && client_sockfd[i] != _sock) {
-						send(client_sockfd[i], (const char*)&newuser, newuser.data_length, 0);
+					if (FD_ISSET(client_sockfd[i]->_cli_sock, &read_set) && client_sockfd[i]->_cli_sock != _sock) {
+						send(client_sockfd[i]->_cli_sock, (const char*)&newuser, newuser.data_length, 0);
 					}
 				}
+				client_sockfd.push_back(new RecvBuf(_cli_sock));
+				max_fd = max_fd < _cli_sock ? _cli_sock : max_fd;
+				
 			}
 
 			for (int i = 0; i < client_sockfd.size(); ++i) {
-				if (FD_ISSET(client_sockfd[i], &tmp_set) && client_sockfd[i] != _sock) {
-					process(client_sockfd[i]);
+				if (FD_ISSET(client_sockfd[i]->_cli_sock, &tmp_set) && client_sockfd[i]->_cli_sock != _sock) {
+					recvData(client_sockfd[i]);
 				}
 			}
 		}
@@ -106,46 +117,69 @@ bool SimpleServer::isRun()
 	return _sock != INVALID_SOCKET;
 }
 
-void SimpleServer::process(SOCKET sock_fd) {
-
-	DataHeader dataheader;
-	Login login;
-	Logout logout;
-	int len = recv(sock_fd, (char *)&dataheader, sizeof(DataHeader), 0);
+int SimpleServer::recvData(RecvBuf* recvBuf)
+{
+	int len = recv(recvBuf->_cli_sock, (char*)recvBuf->_recvBuf1, sizeof(RECV_BUF_SIZE), 0);
 	if (len <= 0) {
-		printf("client<socket %d> 退出...\n", sock_fd);
-		FD_CLR(sock_fd, &read_set);
-		client_sockfd.erase(find(client_sockfd.begin(), client_sockfd.end(), sock_fd));
-		close(sock_fd);
+		printf("client<socket %d> 退出...\n", recvBuf->_cli_sock);
 		NewUser newuser;
 		newuser.result = 0;
-		newuser.sock = _cli_sock;
+		newuser.sock = recvBuf->_cli_sock;
 		for (int i = 0; i < client_sockfd.size(); ++i) {
-			if (FD_ISSET(client_sockfd[i], &read_set) && client_sockfd[i] != _sock) {
-				send(client_sockfd[i], (const char*)&newuser, newuser.data_length, 0);
+			if (FD_ISSET(client_sockfd[i]->_cli_sock, &read_set) && client_sockfd[i]->_cli_sock != _sock) {
+				send(client_sockfd[i]->_cli_sock, (const char*)&newuser, newuser.data_length, 0);
 			}
 		}
-		return;
+		FD_CLR(recvBuf->_cli_sock, &read_set);
+		auto it = find(client_sockfd.begin(), client_sockfd.end(), recvBuf);
+		delete *it;
+		client_sockfd.erase(it);
+		
+		
+		return 0;
 	}
+	memcpy(recvBuf->_szMsgBuf2 + recvBuf->_lastPos, recvBuf->_recvBuf1, len);
+	recvBuf->_lastPos += len;
+	while (recvBuf->_lastPos >= sizeof(struct DataHeader)) {
+		DataHeader* dataheader = (DataHeader *)recvBuf->_szMsgBuf2;
+
+		if (recvBuf->_lastPos >= dataheader->data_length) {
+
+			int siz = recvBuf->_lastPos - dataheader->data_length;
+			onNetMsg(*dataheader, recvBuf->_cli_sock);
+			memcpy(recvBuf->_szMsgBuf2, recvBuf->_szMsgBuf2 + dataheader->data_length, siz);
+			recvBuf->_lastPos = siz;
+		}
+		else {
+			break;
+		}
+	}
+	return 0;
+}
+
+int SimpleServer::onNetMsg(DataHeader& dataheader, SOCKET cliSock) {
+
+	
 	switch (dataheader.cmd) {
 	case(CMD_LOGIN): {
-		recv(sock_fd, (char*)&login + sizeof(DataHeader), dataheader.data_length - sizeof(DataHeader), 0);
-		printf("usrname: %s, password: %s\n", login.username, login.password);
+		Login* login = (Login*)&dataheader;
+		printf("usrname: %s, password: %s\n", login->username, login->password);
 		LoginResult login_result;
-		send(sock_fd, (const char*)&login_result, login_result.data_length, 0);
+		send(cliSock, (const char*)&login_result, login_result.data_length, 0);
 	}
 						break;
 	case(CMD_LOGOUT): {
-		recv(sock_fd, (char*)&logout + sizeof(DataHeader), dataheader.data_length - sizeof(DataHeader), 0);
+		Logout* logout = (Logout*)&dataheader;
 		LogoutResult logout_result;
-		send(sock_fd, (const char*)&logout_result, logout_result.data_length, 0);
-		printf("username: %s, length : %d\n", logout.username, logout.data_length);
+		send(cliSock, (const char*)&logout_result, logout_result.data_length, 0);
+		printf("username: %s, length : %d\n", logout->username, logout->data_length);
 	}
 						break;
 	default:
+		printf("未知命令...");
 		break;
 	}
-	return;
+	return 0;
 
 	
 }

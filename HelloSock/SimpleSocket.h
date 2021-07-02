@@ -19,6 +19,26 @@
 #include <DataHeader.hpp>
 #include <vector>
 
+#define RECV_BUF_SIZE 10240
+
+struct RecvBuf {
+public:
+	RecvBuf(SOCKET cliSock) {
+		_recvBuf1[RECV_BUF_SIZE] = {};
+		_szMsgBuf2[RECV_BUF_SIZE * 10] = {};
+		_lastPos = 0;
+		_cli_sock = cliSock;
+	}
+
+
+	//接收缓冲区
+	char _recvBuf1[RECV_BUF_SIZE];
+	//第二缓冲区
+	char _szMsgBuf2[RECV_BUF_SIZE * 10];
+	int _lastPos;
+	int _cli_sock;
+};
+
 class SimpleServer
 {
 public:
@@ -29,24 +49,23 @@ public:
 	//accept
 
 	//关闭链接
-	void close(SOCKET sock);
+	void Close();
 
 	//运行
 	int onRun();
 	//判断是否运行
 	bool isRun();
 
-	int recvData();
+	int recvData(RecvBuf* recvBuf);
 
-	int onNetMsg(DataHeader& dataheader);
+	int onNetMsg(DataHeader& dataheader, SOCKET cliSock);
 	int sendData(DataHeader& dataheader);
-	void process(SOCKET sock_fd);
 private:
 	SOCKET _sock;
 	SOCKET _cli_sock;
 	SOCKET max_fd;
 	fd_set read_set;
-	std::vector<int> client_sockfd;
+	std::vector<RecvBuf*> client_sockfd;
 };
 
 #endif // !1

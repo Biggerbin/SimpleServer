@@ -26,7 +26,7 @@ void process(SimpleClient* simple_client) {
 			simple_client->sendData(login);
 		}
 		else {
-			printf("重新输入...");
+			printf("重新输入...\n");
 		}
 	}
 }

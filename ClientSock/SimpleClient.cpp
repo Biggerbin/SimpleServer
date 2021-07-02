@@ -4,6 +4,7 @@ SimpleClient::SimpleClient()
 {
 	_sock = INVALID_SOCKET;
 	FD_ZERO(&read_set);
+	_recvBuf = new RecvBuf();
 }
 
 SOCKET SimpleClient::InitSocket()
@@ -14,6 +15,11 @@ SOCKET SimpleClient::InitSocket()
 	WSAStartup(ver, &dat);
 #endif // _WIN32
 	_sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (!isRun()) {
+		printf("建立socket失败...\n");
+		return INVALID_SOCKET;
+	}
+	printf("成功建立socket...\n");
 	FD_SET(_sock, &read_set);
 	return _sock;
 }
@@ -31,6 +37,12 @@ void SimpleClient::Connect(std::string ip_addr, int port)
 #endif
 
 	int ret = connect(_sock, (struct sockaddr *)&ser_addr, sizeof(struct sockaddr));
+	if (ret == SOCKET_ERROR) {
+		printf("连接服务器失败...\n");
+		return;
+	}
+	printf("成功连接服务器...\n");
+
 }
 
 void SimpleClient::close()
@@ -54,7 +66,7 @@ int SimpleClient::onRun()
 	if (isRun()) {
 		fd_set tmp_set = read_set;
 		timeval t = { 0, 0 };
-		int num = select(_sock + 1, &tmp_set, NULL, NULL, &t);
+		int num = (int)select(_sock + 1, &tmp_set, NULL, NULL, &t);
 		if (num < 0) {
 			close();
 			printf("与服务器连接结束...\n");
@@ -78,16 +90,30 @@ bool SimpleClient::isRun()
 
 int SimpleClient::recvData()
 {
-	char recv_buf[4096];
-	memset(&recv_buf, 0, sizeof(recv_buf));
-	int len = recv(_sock, recv_buf, sizeof(DataHeader), 0);
+	//解决粘包问题
+	
+	int len = recv(_sock, (char*)_recvBuf->_recvBuf1, sizeof(RECV_BUF_SIZE), 0);
 	if (len <= 0) {
 		return -1;
 	}
-	DataHeader* dataheader = (DataHeader *)recv_buf;
-	len = recv(_sock, recv_buf + sizeof(struct DataHeader), dataheader->data_length - sizeof(struct DataHeader), 0);
+	memcpy(_recvBuf->_szMsgBuf2+ _recvBuf->_lastPos, _recvBuf->_recvBuf1, len);
+	_recvBuf->_lastPos += len;
+	while (_recvBuf->_lastPos >= sizeof(struct DataHeader)) {
+		DataHeader* dataheader = (DataHeader *)_recvBuf->_szMsgBuf2;
+		
+		if (_recvBuf->_lastPos >= dataheader->data_length) {
 
-	onNetMsg(dataheader);
+			int siz = _recvBuf->_lastPos - dataheader->data_length;
+			onNetMsg(dataheader);
+			memcpy(_recvBuf->_szMsgBuf2, _recvBuf->_szMsgBuf2 + dataheader->data_length, siz);
+			_recvBuf->_lastPos = siz;
+		}
+		else {
+			break;
+		}
+	}
+	//...
+
 	return 0;
 }
 
@@ -111,7 +137,7 @@ int SimpleClient::onNetMsg(DataHeader* dataheader)
 		}	
 	}
 	else {
-		printf("无法识别命令...\n");
+		printf("无法识别反馈...\n");
 	}
 
 	return 0;
