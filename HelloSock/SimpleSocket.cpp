@@ -4,6 +4,10 @@ SimpleServer::SimpleServer()
 {
 	_sock = INVALID_SOCKET;
 	FD_ZERO(&read_set);
+	_recvCount = 0;
+	_msgCount = 0;
+	_clientCount = 0;
+
 }
 
 SOCKET SimpleServer::InitSocket(int port)
@@ -42,74 +46,45 @@ SOCKET SimpleServer::InitSocket(int port)
 
 void SimpleServer::Close()
 {
-if (isRun()) {
+	if (isRun()) {
 #ifdef WIN32
-		closesocket(_sock);
-		for (auto& recvBuf : client_sockfd) {
-			closesocket(recvBuf->_cli_sock);
-			delete recvBuf;
-}
+			closesocket(_sock);
 #else
-		for (auto& recvBuf : client_sockfd) {
-			close(recvBuf->_cli_sock);
-			delete recvBuf;
-		}
-		close(sock);
+			close(sock);
 #endif // WIN32
-		_sock = INVALID_SOCKET;
-		client_sockfd.clear();
-
-}
+			_sock = INVALID_SOCKET;
+	}
 
 }
 
 int SimpleServer::onRun()
 {
-	if (isRun()) {
-		max_fd = _sock;
-		FD_SET(_sock, &read_set);
-		while (true) {
-			fd_set tmp_set = read_set;
-			timeval t = { 0, 0 };
-			int num = select(max_fd + 1, &tmp_set, NULL, NULL, &t);
-			if (num < 0) {
-				printf("select 调用失败...\n");
+	FD_SET(_sock, &read_set);
+	while (isRun()) {
+		time4msg();
+		fd_set tmp_set = read_set;
+		timeval t = { 1, 0 };
+		int num = select(_sock + 1, &tmp_set, NULL, NULL, &t);
+		if (num < 0) {
+			printf("select 调用失败...\n");
+			return -1;
+		}
+		if (FD_ISSET(_sock, &tmp_set)) {
+			if (-1 == Accept()) {
 				return -1;
 			}
-			if (FD_ISSET(_sock, &tmp_set)) {
-				struct sockaddr_in cli_addr;
-				SOCKET cli_fd = INVALID_SOCKET;
-				int addlen = sizeof(struct sockaddr);
-				char recv_buf[BUFSIZ];
-				_cli_sock = accept(_sock, (struct sockaddr *)&cli_addr, &addlen);
-				if (_cli_sock == INVALID_SOCKET) {
-					printf("accept fail");
-					continue;
-				}
-				printf("new client 建立, ip = %s, port = %d\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
-				FD_SET(_cli_sock, &read_set);
-				NewUser newuser;
-				newuser.result = 1;
-				newuser.sock = _cli_sock;
-				for (int i = 0; i < client_sockfd.size(); ++i) {
-					if (FD_ISSET(client_sockfd[i]->_cli_sock, &read_set) && client_sockfd[i]->_cli_sock != _sock) {
-						send(client_sockfd[i]->_cli_sock, (const char*)&newuser, newuser.data_length, 0);
-					}
-				}
-				client_sockfd.push_back(new RecvBuf(_cli_sock));
-				max_fd = max_fd < _cli_sock ? _cli_sock : max_fd;
-				
-			}
-
+			/*NewUser newuser;
+			newuser.result = 1;
+			newuser.sock = _cli_sock;
 			for (int i = 0; i < client_sockfd.size(); ++i) {
-				if (FD_ISSET(client_sockfd[i]->_cli_sock, &tmp_set) && client_sockfd[i]->_cli_sock != _sock) {
-					recvData(client_sockfd[i]);
+				if (FD_ISSET(client_sockfd[i]->_cli_sock, &read_set) && client_sockfd[i]->_cli_sock != _sock) {
+					send(client_sockfd[i]->_cli_sock, (const char*)&newuser, newuser.data_length, 0);
 				}
-			}
+			}*/
+			return 0;
 		}
-		return 0;
-	}
-	return -1;
+}
+return -1;
 }
 
 bool SimpleServer::isRun()
@@ -117,12 +92,148 @@ bool SimpleServer::isRun()
 	return _sock != INVALID_SOCKET;
 }
 
-int SimpleServer::recvData(RecvBuf* recvBuf)
+int SimpleServer::Accept()
 {
-	int len = recv(recvBuf->_cli_sock, (char*)recvBuf->_recvBuf1, sizeof(RECV_BUF_SIZE), 0);
+	struct sockaddr_in cli_addr;
+	SOCKET cli_fd = INVALID_SOCKET;
+	int addlen = sizeof(struct sockaddr);
+	_cli_sock = accept(_sock, (struct sockaddr *)&cli_addr, &addlen);
+	if (_cli_sock == INVALID_SOCKET) {
+		printf("accept fail");
+		return -1;
+	}
+	//printf("new client 建立, ip = %s, port = %d\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
+	addClientToCellServer(new ClientSocket(_cli_sock));
+	return 0;
+}
+
+void SimpleServer::time4msg()
+{
+	auto t1 = _tTime.getElapsedSecond();
+	if (t1 >= 1.0)
+	{
+		printf("thread<%d>,time<%lf>,socket<%d>,clients<%d>,recv<%d>,msg<%d>\n", _cellServers.size(), t1, _sock, (int)_clientCount, (int)(_recvCount / t1), (int)(_msgCount / t1));
+		_recvCount = 0;
+		_msgCount = 0;
+		_tTime.update();
+	}
+}
+
+void SimpleServer::addClientToCellServer(ClientSocket * pClient)
+{
+	CellServer* pMinServer = _cellServers[0];
+	for (auto& pCellServer : _cellServers) {
+		if (pMinServer->getCount() < pCellServer->getCount()) {
+			pMinServer = pCellServer;
+		}
+	}
+	pMinServer->addClient(pClient);
+	OnNetJoin(pClient);
+
+}
+
+void SimpleServer::Start(int pthtread_cnt)
+{
+	for (int i = 0; i < pthtread_cnt; ++i) {
+		auto ser = new CellServer(_sock);
+		_cellServers.push_back(ser);
+		//注册网络事件接受对象
+		ser->setEventObj(this);
+		//启动消息处理线程
+		ser->start();
+	}
+}
+
+
+
+void SimpleServer::OnNetJoin(ClientSocket* pClient)
+{
+	//_clientCount++;
+}
+//cellServer 4 多个线程触发 不安全
+//如果只开启1个cellServer就是安全的
+void SimpleServer::OnNetLeave(ClientSocket* pClient)
+{
+	//_clientCount--;
+}
+//cellServer 4 多个线程触发 不安全
+//如果只开启1个cellServer就是安全的
+void SimpleServer::OnNetMsg(ClientSocket* pClient, DataHeader* header)
+{
+	_msgCount++;
+}
+
+void SimpleServer::OnNetRecv(ClientSocket * pClient)
+{
+	_recvCount++;
+}
+
+
+CellServer::CellServer(SOCKET sock)
+{
+	_sock = sock;
+}
+
+CellServer::~CellServer()
+{
+
+}
+
+int CellServer::onRun()
+{
+	FD_ZERO(&read_set);
+	
+	while (isRun()) {
+		if (!_clientBuf.empty()) {
+			std::lock_guard<std::mutex> lg(_mutex_client);
+			for (auto& iter : _clientBuf) {
+				_client[iter->_cli_sock] = iter;
+				
+			}
+			_clientBuf.clear();
+		}
+		if (_client.empty()) {
+			Sleep(100);
+			continue;
+		}
+		for (auto iter : _client)
+		{
+			if (max_fd < iter.first)
+			{
+				
+				max_fd = iter.first;
+				FD_SET(iter.first, &read_set);
+			}
+		}
+		
+		fd_set tmp_set = read_set;
+		timeval t = { 0, 0 };
+		int num = select(max_fd + 1, &tmp_set, NULL, NULL, &t);
+		if (num < 0) {
+			printf("select<pthread = %d>...%d 调用失败...\n", std::this_thread::get_id(), max_fd);
+			Close();
+			return -1;
+		}
+		if (num == 0) continue;
+		for (auto& iter : _client) {
+			if (FD_ISSET(iter.first, &tmp_set)) {
+				if (-1 == recvData(iter.second)) {
+					_client.erase(iter.first);
+					FD_CLR(iter.first, &read_set);
+				}
+			}
+		}
+	}
+	return 0;
+}
+
+int CellServer::recvData(ClientSocket * pClient)
+{
+	_pNetEvent->OnNetRecv(pClient);
+	int len = recv(pClient->_cli_sock, (char*)pClient->_recvBuf1, sizeof(RECV_BUF_SIZE), 0);
 	if (len <= 0) {
-		printf("client<socket %d> 退出...\n", recvBuf->_cli_sock);
-		NewUser newuser;
+		printf("client<socket %d> 退出...\n", pClient->_cli_sock);
+		/*NewUser newuser;
 		newuser.result = 0;
 		newuser.sock = recvBuf->_cli_sock;
 		for (int i = 0; i < client_sockfd.size(); ++i) {
@@ -133,22 +244,21 @@ int SimpleServer::recvData(RecvBuf* recvBuf)
 		FD_CLR(recvBuf->_cli_sock, &read_set);
 		auto it = find(client_sockfd.begin(), client_sockfd.end(), recvBuf);
 		delete *it;
-		client_sockfd.erase(it);
-		
-		
-		return 0;
+		client_sockfd.erase(it);*/
+		return -1;
 	}
-	memcpy(recvBuf->_szMsgBuf2 + recvBuf->_lastPos, recvBuf->_recvBuf1, len);
-	recvBuf->_lastPos += len;
-	while (recvBuf->_lastPos >= sizeof(struct DataHeader)) {
-		DataHeader* dataheader = (DataHeader *)recvBuf->_szMsgBuf2;
+	memcpy(pClient->_szMsgBuf2 + pClient->_lastPos, pClient->_recvBuf1, len);
+	pClient->_lastPos += len;
+	
+	while (pClient->_lastPos >= sizeof(struct DataHeader)) {
+		DataHeader* dataheader = (DataHeader *)pClient->_szMsgBuf2;
 
-		if (recvBuf->_lastPos >= dataheader->data_length) {
+		if (pClient->_lastPos >= dataheader->data_length) {
 
-			int siz = recvBuf->_lastPos - dataheader->data_length;
-			onNetMsg(*dataheader, recvBuf->_cli_sock);
-			memcpy(recvBuf->_szMsgBuf2, recvBuf->_szMsgBuf2 + dataheader->data_length, siz);
-			recvBuf->_lastPos = siz;
+			int siz = pClient->_lastPos - dataheader->data_length;
+			_pNetEvent->OnNetMsg(pClient, dataheader);
+			memcpy(pClient->_szMsgBuf2, pClient->_szMsgBuf2 + dataheader->data_length, siz);
+			pClient->_lastPos = siz;
 		}
 		else {
 			break;
@@ -157,29 +267,57 @@ int SimpleServer::recvData(RecvBuf* recvBuf)
 	return 0;
 }
 
-int SimpleServer::onNetMsg(DataHeader& dataheader, SOCKET cliSock) {
-
-	
-	switch (dataheader.cmd) {
-	case(CMD_LOGIN): {
-		Login* login = (Login*)&dataheader;
-		printf("usrname: %s, password: %s\n", login->username, login->password);
-		LoginResult login_result;
-		send(cliSock, (const char*)&login_result, login_result.data_length, 0);
-	}
-						break;
-	case(CMD_LOGOUT): {
-		Logout* logout = (Logout*)&dataheader;
-		LogoutResult logout_result;
-		send(cliSock, (const char*)&logout_result, logout_result.data_length, 0);
-		printf("username: %s, length : %d\n", logout->username, logout->data_length);
-	}
-						break;
-	default:
-		printf("未知命令...");
-		break;
-	}
-	return 0;
-
-	
+int CellServer::getCount()
+{
+	return _client.size() + _clientBuf.size();
 }
+
+bool CellServer::isRun()
+{
+	return _sock != INVALID_SOCKET;
+}
+
+void CellServer::addClient(ClientSocket * pClient)
+{
+	
+	std::lock_guard<std::mutex> lg(_mutex_client_buf);
+	_clientBuf.push_back(pClient);
+}
+
+void CellServer::setEventObj(INetEvent * event)
+{
+	_pNetEvent = event;
+}
+
+void CellServer::start()
+{
+	_thread = std::thread(std::mem_fn(&CellServer::onRun), this);
+}
+
+
+
+void CellServer::Close()
+{
+	if (_sock != INVALID_SOCKET)
+	{
+#ifdef _WIN32
+		for (auto iter : _client)
+		{
+			closesocket(iter.first);
+			delete iter.second;
+		}
+		//关闭套节字closesocket
+		closesocket(_sock);
+#else
+		for (auto iter : _clients)
+		{
+			close(iter.first);
+			delete iter.second;
+		}
+		//关闭套节字closesocket
+		close(_sock);
+#endif
+		_client.clear();
+	}
+}
+

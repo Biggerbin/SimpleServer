@@ -5,6 +5,7 @@ SimpleClient::SimpleClient()
 	_sock = INVALID_SOCKET;
 	FD_ZERO(&read_set);
 	_recvBuf = new RecvBuf();
+	
 }
 
 SOCKET SimpleClient::InitSocket()
@@ -19,7 +20,7 @@ SOCKET SimpleClient::InitSocket()
 		printf("建立socket失败...\n");
 		return INVALID_SOCKET;
 	}
-	printf("成功建立socket...\n");
+	//printf("成功建立socket...\n");
 	FD_SET(_sock, &read_set);
 	return _sock;
 }
@@ -41,7 +42,7 @@ void SimpleClient::Connect(std::string ip_addr, int port)
 		printf("连接服务器失败...\n");
 		return;
 	}
-	printf("成功连接服务器...\n");
+	//printf("成功连接服务器...\n");
 
 }
 
@@ -119,6 +120,17 @@ int SimpleClient::recvData()
 
 int SimpleClient::onNetMsg(DataHeader* dataheader)
 {
+	//测试
+	/*count++;
+	auto t2 = high_resolution_clock::now();
+	duration<double, ratio<1, 1000>> fp_ms = t2 - t1;
+	
+	if (fp_ms.count() >= 1000) {
+		printf("time : %lf;count : %d\n",fp_ms.count(), count);
+		count = 0;
+		t1 = high_resolution_clock::now();
+	}
+	return 0;*/
 	if (CMD_LOGIN_RESULT == dataheader->cmd) {
 		LoginResult* result = (LoginResult *)dataheader;
 		printf("收到登陆反馈结果: %d， 命令长度为%d\n", result->result, result->data_length);

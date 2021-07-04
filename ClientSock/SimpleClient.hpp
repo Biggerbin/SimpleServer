@@ -17,9 +17,10 @@
 #include <stdio.h>
 #include <string>
 #include <DataHeader.hpp>
-
+//#include <chrono>
 #define RECV_BUF_SIZE 10240
-
+//using namespace std;
+//using namespace std::chrono;
 struct RecvBuf {
 	//接收缓冲区
 	char _recvBuf1[RECV_BUF_SIZE] = {};
@@ -54,6 +55,8 @@ private:
 	fd_set read_set;
 	//接收缓冲区
 	RecvBuf* _recvBuf;
+	/*high_resolution_clock::time_point t1 = high_resolution_clock::now();
+	int count = 0;*/
 };
 
 #endif // !1
