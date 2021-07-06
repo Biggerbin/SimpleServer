@@ -23,6 +23,7 @@
     <ProjectGuid>{549B26F3-2EB4-4EB5-B57E-1AA7328F23C5}</ProjectGuid>
     <RootNamespace>ClientSock</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <ProjectName>SimpleTcpClient</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

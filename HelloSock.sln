@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.1267
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HelloSock", "HelloSock\HelloSock.vcxproj", "{69348C54-2E7F-4C44-9DB7-202E4DD5BCFA}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimpleTcpServer", "HelloSock\HelloSock.vcxproj", "{69348C54-2E7F-4C44-9DB7-202E4DD5BCFA}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ClientSock", "ClientSock\ClientSock.vcxproj", "{549B26F3-2EB4-4EB5-B57E-1AA7328F23C5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimpleTcpClient", "ClientSock\ClientSock.vcxproj", "{549B26F3-2EB4-4EB5-B57E-1AA7328F23C5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -23,9 +23,13 @@
 #include <map>
 #include <Timestamp.h>
 #include <atomic>
+#include "CellTask.h"
 
 
 #define RECV_BUF_SIZE 10240
+#define SEND_BUFF_SZIE 10240
+
+class CellServer;
 
 struct ClientSocket {
 public:
@@ -38,18 +42,42 @@ public:
 	
 	int SendData(DataHeader* header)
 	{
-		if (header)
-		{
-			return send(_cli_sock, (const char*)header, header->data_length, 0);
+		int ret = SOCKET_ERROR;
+		int nSendLen = header->data_length;
+		const char* pSendData = (const char*)header;
+		while (true) {
+			if (_lastSendPos + nSendLen >= SEND_BUFF_SZIE) {
+				int nCopyLen = SEND_BUFF_SZIE - _lastSendPos;
+				memcpy(_szSendBuf + _lastSendPos, pSendData, nCopyLen);
+				pSendData += nCopyLen;
+				nSendLen -= nCopyLen;
+				ret = send(_cli_sock, _szSendBuf, SEND_BUFF_SZIE, 0);
+				_lastSendPos = 0;
+				if (SOCKET_ERROR == ret) {
+					return ret;
+				}
+			}
+			else {
+				memcpy(_szSendBuf + _lastSendPos, pSendData, nSendLen);
+				_lastSendPos += nSendLen;
+				break;
+			}
 		}
-		return SOCKET_ERROR;
+		
 	}
+	
+	int _cli_sock;
 	//接收缓冲区
 	char _recvBuf1[RECV_BUF_SIZE];
 	//第二缓冲区
 	char _szMsgBuf2[RECV_BUF_SIZE * 10];
 	int _lastPos;
-	int _cli_sock;
+
+	//第二缓冲区 发送缓冲区
+	char _szSendBuf[SEND_BUFF_SZIE];
+	//发送缓冲区的数据尾部位置
+	int _lastSendPos = 0;
+	
 };
 
 //网络事件接口
@@ -62,11 +90,30 @@ public:
 	//客户端离开事件
 	virtual void OnNetLeave(ClientSocket* pClient) = 0;
 	//客户端消息事件
-	virtual void OnNetMsg(ClientSocket* pClient, DataHeader* header) = 0;
+	virtual void OnNetMsg(CellServer*, ClientSocket* pClient, DataHeader* header) = 0;
 	//recv事件
 	virtual void OnNetRecv(ClientSocket* pClient) = 0;
 private:
 
+};
+
+class CellSendMsg2ClientTask :public CellTask
+{
+	ClientSocket* _pClient;
+	DataHeader* _pHeader;
+public:
+	CellSendMsg2ClientTask(ClientSocket* pClient, DataHeader* header)
+	{
+		_pClient = pClient;
+		_pHeader = header;
+	}
+
+	//执行任务
+	void doTask()
+	{
+		_pClient->SendData(_pHeader);
+		delete _pHeader;
+	}
 };
 
 class CellServer
@@ -77,12 +124,14 @@ public:
 
 	int onRun();
 	int recvData(ClientSocket* recvBuf);
+	virtual void OnNetMsg(ClientSocket* pClient, DataHeader* header);
 	int getCount();
 	//判断是否运行
 	bool isRun();
 	void addClient(ClientSocket* pClient);
 	void setEventObj(INetEvent* event);
 	void start();
+	void addSendTask(ClientSocket* pClient, DataHeader* header);
 	void Close();
 
 private:
@@ -95,6 +144,7 @@ private:
 	SOCKET max_fd = 0;
 	fd_set read_set;
 	INetEvent* _pNetEvent;
+	CellTaskServer _taskServer;
 
 };
 
@@ -123,7 +173,7 @@ public:
 	//客户端离开事件
 	virtual void OnNetLeave(ClientSocket* pClient);
 	//客户端消息事件
-	virtual void OnNetMsg(ClientSocket* pClient, DataHeader* header);
+	virtual void OnNetMsg(CellServer* pCellServer, ClientSocket* pClient, DataHeader* header);
 	//recv事件
 	virtual void OnNetRecv(ClientSocket* pClient);
 
