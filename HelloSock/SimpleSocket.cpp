@@ -1,5 +1,7 @@
 #include "SimpleSocket.h"
 
+
+
 SimpleServer::SimpleServer()
 {
 	_sock = INVALID_SOCKET;
@@ -63,7 +65,7 @@ int SimpleServer::onRun()
 	while (isRun()) {
 		time4msg();
 		fd_set tmp_set = read_set;
-		timeval t = { 1, 0 };
+		timeval t = { 0, 0 };
 		int num = select(_sock + 1, &tmp_set, NULL, NULL, &t);
 		if (num < 0) {
 			printf("select 调用失败...\n");
@@ -104,7 +106,8 @@ int SimpleServer::Accept()
 		return -1;
 	}
 	//printf("new client 建立, ip = %s, port = %d\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
-	addClientToCellServer(new ClientSocket(cli_fd));
+	std::shared_ptr<ClientSocket> cli_ptr(new ClientSocket(cli_fd));
+	addClientToCellServer(cli_ptr);
 	return 0;
 }
 
@@ -119,8 +122,8 @@ void SimpleServer::time4msg()
 		_tTime.update();
 	}
 }
-
-void SimpleServer::addClientToCellServer(ClientSocket * pClient)
+typedef std::shared_ptr<ClientSocket> ClientSocktPtr;
+void SimpleServer::addClientToCellServer(ClientSocktPtr pClient)
 {
 	CellServer* pMinServer = _cellServers[0];
 	for (auto& pCellServer : _cellServers) {
@@ -147,24 +150,24 @@ void SimpleServer::Start(int pthtread_cnt)
 
 
 
-void SimpleServer::OnNetJoin(ClientSocket* pClient)
+void SimpleServer::OnNetJoin(ClientSocktPtr pClient)
 {
-	//_clientCount++;
+	_clientCount++;
 }
 //cellServer 4 多个线程触发 不安全
 //如果只开启1个cellServer就是安全的
-void SimpleServer::OnNetLeave(ClientSocket* pClient)
+void SimpleServer::OnNetLeave(ClientSocktPtr pClient)
 {
-	//_clientCount--;
+	_clientCount--;
 }
 //cellServer 4 多个线程触发 不安全
 //如果只开启1个cellServer就是安全的
-void SimpleServer::OnNetMsg(CellServer* pCellServer, ClientSocket* pClient, DataHeader* header)
+void SimpleServer::OnNetMsg(CellServer* pCellServer, ClientSocktPtr pClient, DataHeader* header)
 {
 	_msgCount++;
 }
 
-void SimpleServer::OnNetRecv(ClientSocket * pClient)
+void SimpleServer::OnNetRecv(ClientSocktPtr pClient)
 {
 	_recvCount++;
 }
@@ -204,10 +207,9 @@ int CellServer::onRun()
 		{
 			if (max_fd < iter.first)
 			{
-				
 				max_fd = iter.first;
-				FD_SET(iter.first, &read_set);
 			}
+			FD_SET(iter.first, &read_set);
 		}
 		
 		fd_set tmp_set = read_set;
@@ -219,21 +221,26 @@ int CellServer::onRun()
 			return -1;
 		}
 		if (num == 0) continue;
+		std::vector<SOCKET> temp;
 		for (auto& iter : _client) {
 			if (FD_ISSET(iter.first, &tmp_set)) {
 				if (-1 == recvData(iter.second)) {
 					if (_pNetEvent)
 						_pNetEvent->OnNetLeave(iter.second);
-					_client.erase(iter.first);
+					temp.push_back(iter.first);
 					FD_CLR(iter.first, &read_set);
 				}
 			}
+		}
+		for (auto sock : temp)
+		{
+			_client.erase(sock);
 		}
 	}
 	return 0;
 }
 
-int CellServer::recvData(ClientSocket * pClient)
+int CellServer::recvData(ClientSocktPtr pClient)
 {
 	_pNetEvent->OnNetRecv(pClient);
 	int len = recv(pClient->_cli_sock, (char*)pClient->_recvBuf1, sizeof(RECV_BUF_SIZE), 0);
@@ -257,7 +264,7 @@ int CellServer::recvData(ClientSocket * pClient)
 	pClient->_lastPos += len;
 	
 	while (pClient->_lastPos >= sizeof(struct DataHeader)) {
-		DataHeader* dataheader = (DataHeader *)pClient->_szMsgBuf2;
+		DataHeader* dataheader = (DataHeader*)(pClient->_szMsgBuf2);
 
 		if (pClient->_lastPos >= dataheader->data_length) {
 
@@ -272,7 +279,7 @@ int CellServer::recvData(ClientSocket * pClient)
 	}
 	return 0;
 }
-void CellServer::OnNetMsg(ClientSocket* pClient, DataHeader* header) {
+void CellServer::OnNetMsg(ClientSocktPtr pClient, DataHeader* header) {
 	_pNetEvent->OnNetMsg(this, pClient, header);
 }
 int CellServer::getCount()
@@ -285,7 +292,7 @@ bool CellServer::isRun()
 	return _sock != INVALID_SOCKET;
 }
 
-void CellServer::addClient(ClientSocket * pClient)
+void CellServer::addClient(ClientSocktPtr pClient)
 {
 	
 	std::lock_guard<std::mutex> lg(_mutex_client_buf);
@@ -303,7 +310,7 @@ void CellServer::start()
 	_taskServer.start();
 }
 
-void CellServer::addSendTask(ClientSocket* pClient, DataHeader* header)
+void CellServer::addSendTask(ClientSocktPtr pClient, dataHeaderPtr header)
 {
 	CellSendMsg2ClientTask* task = new CellSendMsg2ClientTask(pClient, header);
 	_taskServer.addTasks(task);
@@ -317,7 +324,6 @@ void CellServer::Close()
 		for (auto iter : _client)
 		{
 			closesocket(iter.first);
-			delete iter.second;
 		}
 		//关闭套节字closesocket
 		closesocket(_sock);
@@ -325,7 +331,6 @@ void CellServer::Close()
 		for (auto iter : _clients)
 		{
 			close(iter.first);
-			delete iter.second;
 		}
 		//关闭套节字closesocket
 		close(_sock);

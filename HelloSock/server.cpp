@@ -8,21 +8,21 @@ public:
 
 	}
 	//只会被一个线程触发 安全
-	virtual void OnNetJoin(ClientSocket* pClient)
+	virtual void OnNetJoin(ClientSocktPtr pClient)
 	{
 		SimpleServer::OnNetJoin(pClient);
 		//printf("client<%d> join\n", pClient->sockfd());
 	}
 	//cellServer 4 多个线程触发 不安全
 	//如果只开启1个cellServer就是安全的
-	virtual void OnNetLeave(ClientSocket* pClient)
+	virtual void OnNetLeave(ClientSocktPtr pClient)
 	{
 		SimpleServer::OnNetLeave(pClient);
 		//printf("client<%d> leave\n", pClient->sockfd());
 	}
 	//cellServer 4 多个线程触发 不安全
 	//如果只开启1个cellServer就是安全的
-	virtual void OnNetMsg(CellServer* pCellServer, ClientSocket* pClient, DataHeader* header)
+	virtual void OnNetMsg(CellServer* pCellServer, ClientSocktPtr pClient, DataHeader* header)
 	{
 		SimpleServer::OnNetMsg(pCellServer, pClient, header);
 		switch (header->cmd)
@@ -35,7 +35,7 @@ public:
 			//忽略判断用户密码是否正确的过程
 			//LoginResult ret;
 			//pClient->SendData(&ret);
-			LoginResult* ret = new LoginResult();
+			std::shared_ptr<LoginResult> ret(new LoginResult());
 			pCellServer->addSendTask(pClient, ret);
 		}//接收 消息---处理 发送   生产者 数据缓冲区  消费者 
 		break;
@@ -57,7 +57,7 @@ public:
 		break;
 		}
 	}
-	virtual void OnNetRecv(ClientSocket* pClient)
+	virtual void OnNetRecv(ClientSocktPtr pClient)
 	{
 		SimpleServer::OnNetRecv(pClient);
 		//printf("client<%d> leave\n", pClient->sockfd());
@@ -86,7 +86,6 @@ void cmdThread()
 }
 
 int main() {
-	printf("--------------");
 
 	MyServer server;
 	server.InitSocket(8080);

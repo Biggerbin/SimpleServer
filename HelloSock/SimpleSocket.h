@@ -30,7 +30,7 @@
 #define SEND_BUFF_SZIE 10240
 
 class CellServer;
-
+typedef std::shared_ptr<DataHeader> dataHeaderPtr;
 struct ClientSocket {
 public:
 	ClientSocket(SOCKET cliSock) {
@@ -40,11 +40,11 @@ public:
 		_cli_sock = cliSock;
 	}
 	
-	int SendData(DataHeader* header)
+	int SendData(dataHeaderPtr header)
 	{
 		int ret = SOCKET_ERROR;
 		int nSendLen = header->data_length;
-		const char* pSendData = (const char*)header;
+		const char* pSendData = (char*)header.get();
 		while (true) {
 			if (_lastSendPos + nSendLen >= SEND_BUFF_SZIE) {
 				int nCopyLen = SEND_BUFF_SZIE - _lastSendPos;
@@ -79,30 +79,30 @@ public:
 	int _lastSendPos = 0;
 	
 };
-
+typedef std::shared_ptr<ClientSocket> ClientSocktPtr;
 //网络事件接口
 class INetEvent
 {
 public:
 	//纯虚函数
 	//客户端加入事件
-	virtual void OnNetJoin(ClientSocket* pClient) = 0;
+	virtual void OnNetJoin(ClientSocktPtr pClient) = 0;
 	//客户端离开事件
-	virtual void OnNetLeave(ClientSocket* pClient) = 0;
+	virtual void OnNetLeave(ClientSocktPtr pClient) = 0;
 	//客户端消息事件
-	virtual void OnNetMsg(CellServer*, ClientSocket* pClient, DataHeader* header) = 0;
+	virtual void OnNetMsg(CellServer*, ClientSocktPtr pClient, DataHeader* header) = 0;
 	//recv事件
-	virtual void OnNetRecv(ClientSocket* pClient) = 0;
+	virtual void OnNetRecv(ClientSocktPtr pClient) = 0;
 private:
 
 };
 
 class CellSendMsg2ClientTask :public CellTask
 {
-	ClientSocket* _pClient;
-	DataHeader* _pHeader;
+	ClientSocktPtr _pClient;
+	dataHeaderPtr _pHeader;
 public:
-	CellSendMsg2ClientTask(ClientSocket* pClient, DataHeader* header)
+	CellSendMsg2ClientTask(ClientSocktPtr pClient, dataHeaderPtr header)
 	{
 		_pClient = pClient;
 		_pHeader = header;
@@ -112,7 +112,6 @@ public:
 	void doTask()
 	{
 		_pClient->SendData(_pHeader);
-		delete _pHeader;
 	}
 };
 
@@ -123,20 +122,20 @@ public:
 	~CellServer();
 
 	int onRun();
-	int recvData(ClientSocket* recvBuf);
-	virtual void OnNetMsg(ClientSocket* pClient, DataHeader* header);
+	int recvData(ClientSocktPtr recvBuf);
+	virtual void OnNetMsg(ClientSocktPtr pClient, DataHeader* header);
 	int getCount();
 	//判断是否运行
 	bool isRun();
-	void addClient(ClientSocket* pClient);
+	void addClient(ClientSocktPtr pClient);
 	void setEventObj(INetEvent* event);
 	void start();
-	void addSendTask(ClientSocket* pClient, DataHeader* header);
+	void addSendTask(ClientSocktPtr pClient, dataHeaderPtr header);
 	void Close();
 
 private:
-	std::map<SOCKET ,ClientSocket*> _client;
-	std::vector<ClientSocket*> _clientBuf;
+	std::map<SOCKET ,ClientSocktPtr> _client;
+	std::vector<ClientSocktPtr> _clientBuf;
 	std::mutex _mutex_client_buf;
 	std::mutex _mutex_client;
 	std::thread _thread;
@@ -167,15 +166,15 @@ public:
 	bool isRun();
 	int Accept();
 	void time4msg();
-	void addClientToCellServer(ClientSocket* pClient);
+	void addClientToCellServer(ClientSocktPtr pClient);
 	void Start(int pthtread_cnt);
-	virtual void OnNetJoin(ClientSocket* pClient);
+	virtual void OnNetJoin(ClientSocktPtr pClient);
 	//客户端离开事件
-	virtual void OnNetLeave(ClientSocket* pClient);
+	virtual void OnNetLeave(ClientSocktPtr pClient);
 	//客户端消息事件
-	virtual void OnNetMsg(CellServer* pCellServer, ClientSocket* pClient, DataHeader* header);
+	virtual void OnNetMsg(CellServer* pCellServer, ClientSocktPtr pClient, DataHeader* header);
 	//recv事件
-	virtual void OnNetRecv(ClientSocket* pClient);
+	virtual void OnNetRecv(ClientSocktPtr pClient);
 
 private:
 	SOCKET _sock;
