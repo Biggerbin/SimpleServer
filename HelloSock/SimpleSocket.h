@@ -24,6 +24,7 @@
 #include <Timestamp.h>
 #include <atomic>
 #include "CellTask.h"
+#include "ObjectPool.h"
 
 
 #define RECV_BUF_SIZE 10240
@@ -31,7 +32,7 @@
 
 class CellServer;
 typedef std::shared_ptr<DataHeader> dataHeaderPtr;
-struct ClientSocket {
+struct ClientSocket : public ObjectPoolBase<ClientSocket, 1000> {
 public:
 	ClientSocket(SOCKET cliSock) {
 		_recvBuf1[RECV_BUF_SIZE] = {};
