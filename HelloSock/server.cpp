@@ -1,5 +1,5 @@
 #include "Allocator.h"
-#include <SimpleSocket.h>
+#include <SimpleServer.h>
 
 class MyServer : public SimpleServer
 {

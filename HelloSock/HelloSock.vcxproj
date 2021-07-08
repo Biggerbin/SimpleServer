@@ -148,17 +148,23 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Allocator.cpp" />
+    <ClCompile Include="CellClient.cpp" />
+    <ClCompile Include="CellServer.cpp" />
     <ClCompile Include="CellTask.cpp" />
     <ClCompile Include="MemoryPool.cpp" />
     <ClCompile Include="server.cpp" />
-    <ClCompile Include="SimpleSocket.cpp" />
+    <ClCompile Include="SimpleServer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\ClientSock\DataHeader.hpp" />
+    <ClInclude Include="..\ClientSock\DataHeader.h" />
     <ClInclude Include="Allocator.h" />
+    <ClInclude Include="CellClient.h" />
+    <ClInclude Include="CellCommon.h" />
+    <ClInclude Include="CellServer.h" />
     <ClInclude Include="CellTask.h" />
     <ClInclude Include="MemoryPool.h" />
-    <ClInclude Include="SimpleSocket.h" />
+    <ClInclude Include="ObjectPool.h" />
+    <ClInclude Include="SimpleServer.h" />
     <ClInclude Include="Timestamp.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

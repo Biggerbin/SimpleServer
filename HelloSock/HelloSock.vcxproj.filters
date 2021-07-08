@@ -18,9 +18,6 @@
     <ClCompile Include="server.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="SimpleSocket.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="CellTask.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -30,14 +27,17 @@
     <ClCompile Include="MemoryPool.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="SimpleServer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CellClient.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CellServer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="SimpleSocket.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ClientSock\DataHeader.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Timestamp.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -48,6 +48,24 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="MemoryPool.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectPool.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SimpleServer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CellClient.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CellCommon.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ClientSock\DataHeader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CellServer.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
