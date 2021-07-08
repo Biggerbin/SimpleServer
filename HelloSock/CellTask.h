@@ -4,24 +4,17 @@
 #include <thread>
 #include <mutex>
 #include <list>
-
-class CellTask
-{
-public:
-	CellTask() {}
-	virtual ~CellTask() {}
-	virtual void doTask() {}
-};
-
+#include <functional>
 
 class CellTaskServer
 {
+	typedef std::function<void()> CellTask;
 private:
-	std::list<CellTask*> _tasks;
-	std::list<CellTask*> _tasksBuf;
+	std::list<CellTask> _tasks;
+	std::list<CellTask> _tasksBuf;
 	std::mutex _mutex;
 public:
-	void addTasks(CellTask* task);
+	void addTask(CellTask task);
 	void start();
 protected:
 	void onRun();

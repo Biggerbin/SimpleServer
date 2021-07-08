@@ -1,6 +1,6 @@
 #include "CellTask.h"
 
-void CellTaskServer::addTasks(CellTask * task)
+void CellTaskServer::addTask(CellTask task)
 {
 	std::lock_guard<std::mutex> lock(_mutex);
 	_tasksBuf.push_back(task);
@@ -28,8 +28,7 @@ void CellTaskServer::onRun()
 			continue;
 		}
 		for (auto ptask : _tasks) {
-			ptask->doTask();
-			delete ptask;
+			ptask();
 		}
 		_tasks.clear();
 	}

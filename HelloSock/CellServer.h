@@ -38,25 +38,6 @@ private:
 
 typedef std::shared_ptr<CellClient> ClientSocktPtr;
 
-
-class CellSendMsg2ClientTask :public CellTask
-{
-	ClientSocktPtr _pClient;
-	dataHeaderPtr _pHeader;
-public:
-	CellSendMsg2ClientTask(ClientSocktPtr pClient, dataHeaderPtr header)
-	{
-		_pClient = pClient;
-		_pHeader = header;
-	}
-
-	//Ö´ÐÐÈÎÎñ
-	void doTask()
-	{
-		_pClient->SendData(_pHeader);
-	}
-};
-
 class CellServer
 {
 public:

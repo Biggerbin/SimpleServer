@@ -140,8 +140,9 @@ void CellServer::start()
 
 void CellServer::addSendTask(ClientSocktPtr pClient, dataHeaderPtr header)
 {
-	CellSendMsg2ClientTask* task = new CellSendMsg2ClientTask(pClient, header);
-	_taskServer.addTasks(task);
+	_taskServer.addTask([pClient, header]() {
+		pClient->SendData(header);
+	});
 }
 
 void CellServer::Close()
