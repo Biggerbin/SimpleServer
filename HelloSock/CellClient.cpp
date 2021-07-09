@@ -8,6 +8,12 @@ CellClient::CellClient(SOCKET cliSock) {
 	_cli_sock = cliSock;
 }
 
+CellClient::~CellClient()
+{
+	closesocket(_cli_sock);
+}
+
+
 int CellClient::SendData(dataHeaderPtr header)
 {
 	int ret = SOCKET_ERROR;
@@ -32,4 +38,19 @@ int CellClient::SendData(dataHeaderPtr header)
 		}
 	}
 
+}
+
+bool CellClient::checkHeart(time_t dt)
+{
+	_dtHeart += dt;
+	if (_dtHeart >= CLIENT_HREAT_DEAD_TIME) {
+		printf("checkHeart dead:s=%d,time=%d\n", _cli_sock, _dtHeart);
+		return true;
+	}
+	return false;
+}
+
+void CellClient::resetDTHeart()
+{
+	_dtHeart = 0;
 }

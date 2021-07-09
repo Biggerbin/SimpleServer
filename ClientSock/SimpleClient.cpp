@@ -159,6 +159,7 @@ int SimpleClient::sendData(DataHeader &dataheader)
 {
 	if (isRun()) {
 		send(_sock, (const char*)&dataheader, dataheader.data_length, 0);
+		send(_sock, (const char*)&dataheader, dataheader.data_length, 0);
 	}
 	return 0;
 }

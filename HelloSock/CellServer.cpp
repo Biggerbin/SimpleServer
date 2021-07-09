@@ -5,6 +5,8 @@ CellServer::CellServer(SOCKET sock)
 {
 	_sock = sock;
 	_pNetEvent = nullptr;
+	_oldTime = Timestamp::getNowInMilliSec();
+
 }
 
 CellServer::~CellServer()
@@ -29,8 +31,10 @@ int CellServer::onRun()
 		if (_client.empty()) {
 			std::chrono::milliseconds t(1);
 			std::this_thread::sleep_for(t);
+			_oldTime = Timestamp::getNowInMilliSec();
 			continue;
 		}
+		FD_ZERO(&read_set);
 		for (auto iter : _client)
 		{
 			if (max_fd < iter.first)
@@ -44,28 +48,53 @@ int CellServer::onRun()
 		timeval t = { 0, 0 };
 		int num = select(max_fd + 1, &tmp_set, NULL, NULL, &t);
 		if (num < 0) {
+			printf("%d", tmp_set);
 			printf("select<pthread = %d>...%d 调用失败...\n", std::this_thread::get_id(), max_fd);
 			Close();
 			return -1;
 		}
+		
 		if (num == 0) continue;
 		std::vector<SOCKET> temp;
 		for (auto& iter : _client) {
 			if (FD_ISSET(iter.first, &tmp_set)) {
+				//iter.second->resetDTHeart();
 				if (-1 == recvData(iter.second)) {
 					if (_pNetEvent)
 						_pNetEvent->OnNetLeave(iter.second);
 					temp.push_back(iter.first);
-					FD_CLR(iter.first, &read_set);
 				}
 			}
 		}
 		for (auto sock : temp)
 		{
 			_client.erase(sock);
+			
 		}
+		//心跳
+		checkTime();
 	}
 	return 0;
+}
+
+void CellServer::checkTime()
+{
+	//当前时间戳
+	auto nowTime = Timestamp::getNowInMilliSec();
+	auto dt = nowTime - _oldTime;
+	_oldTime = nowTime;
+
+	for (auto iter = _client.begin(); iter != _client.end(); )
+	{
+		if (iter->second->checkHeart(dt))
+		{
+			if (_pNetEvent)
+				_pNetEvent->OnNetLeave(iter->second);
+			iter = _client.erase(iter);
+			continue;
+		}
+		iter++;
+	}
 }
 
 int CellServer::recvData(ClientSocktPtr pClient)
@@ -88,6 +117,7 @@ int CellServer::recvData(ClientSocktPtr pClient)
 		client_sockfd.erase(it);*/
 		return -1;
 	}
+	pClient->resetDTHeart();
 	memcpy(pClient->_szMsgBuf2 + pClient->_lastPos, pClient->_recvBuf1, len);
 	pClient->_lastPos += len;
 

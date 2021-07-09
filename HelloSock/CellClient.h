@@ -1,14 +1,15 @@
 #ifndef _CELLCLIENT_H_
 #define _CELLCLIENT_H_
-
+#define CLIENT_HREAT_DEAD_TIME 5000
 #include "CellCommon.h"
 typedef std::shared_ptr<DataHeader> dataHeaderPtr;
 struct CellClient : public ObjectPoolBase<CellClient, 1000> {
 public:
 	CellClient(SOCKET cliSock);
-
+	~CellClient();
 	int SendData(dataHeaderPtr header);
-
+	bool checkHeart(time_t dt);
+	void resetDTHeart();
 	int _cli_sock;
 	//接收缓冲区
 	char _recvBuf1[RECV_BUF_SIZE];
@@ -20,6 +21,7 @@ public:
 	char _szSendBuf[SEND_BUFF_SZIE];
 	//发送缓冲区的数据尾部位置
 	int _lastSendPos = 0;
+	time_t _dtHeart;
 
 };
 

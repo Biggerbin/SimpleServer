@@ -32,7 +32,7 @@ private:
 #include "CellClient.h"
 #include "CellServer.h"
 #include "CellTask.h"
-
+#include "Timestamp.h"
 #include <map>
 #include <vector>
 
@@ -45,6 +45,7 @@ public:
 	~CellServer();
 
 	int onRun();
+	void checkTime();
 	int recvData(ClientSocktPtr recvBuf);
 	virtual void OnNetMsg(ClientSocktPtr pClient, DataHeader* header);
 	int getCount();
@@ -67,6 +68,7 @@ private:
 	fd_set read_set;
 	INetEvent* _pNetEvent;
 	CellTaskServer _taskServer;
+	time_t _oldTime;
 
 };
 

@@ -21,6 +21,12 @@ public:
 		//QueryPerformanceCounter(&_startCount);
 		_begin = high_resolution_clock::now();
 	}
+
+	//获取当前时间戳 (毫秒)
+	static time_t getNowInMilliSec()
+	{
+		return duration_cast<milliseconds>(high_resolution_clock::now().time_since_epoch()).count();
+	}
 	/**
 	*   获取当前秒
 	*/
