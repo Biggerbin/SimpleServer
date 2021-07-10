@@ -17,11 +17,11 @@ CellServer::~CellServer()
 
 }
 
-int CellServer::onRun()
+int CellServer::onRun(CellThread* pthread)
 {
 	FD_ZERO(&read_set);
 
-	while (isRun()) {
+	while (pthread->isRun()){
 		if (!_clientBuf.empty()) {
 			std::lock_guard<std::mutex> lg(_mutex_client);
 			for (auto iter : _clientBuf) {
@@ -77,7 +77,6 @@ int CellServer::onRun()
 		//ÐÄÌø
 		checkTime();
 	}
-	_sem.release();
 	return 0;
 }
 
@@ -150,11 +149,6 @@ int CellServer::getCount()
 	return _client.size() + _clientBuf.size();
 }
 
-bool CellServer::isRun()
-{
-	return _sock != INVALID_SOCKET;
-}
-
 void CellServer::addClient(ClientSocktPtr pClient)
 {
 
@@ -169,9 +163,11 @@ void CellServer::setEventObj(INetEvent * event)
 
 void CellServer::start()
 {
-	_thread = std::thread(std::mem_fn(&CellServer::onRun), this);
-	_thread.detach();
 	_taskServer.start();
+	_thread.Start(nullptr, 
+		[this](CellThread* pthread) {
+			onRun(pthread);},
+		nullptr);
 }
 
 void CellServer::addSendTask(ClientSocktPtr pClient, dataHeaderPtr header)
@@ -183,10 +179,9 @@ void CellServer::addSendTask(ClientSocktPtr pClient, dataHeaderPtr header)
 
 void CellServer::Close()
 {
-	printf("cellserver close...1\n");
+
 	_taskServer.close();
-	_sock = INVALID_SOCKET;
-	_sem.acquire();
-	printf("cellserver close...2\n");
+	_thread.Close();
+
 
 }

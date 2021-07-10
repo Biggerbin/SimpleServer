@@ -5,6 +5,7 @@
 #include "CellClient.h"
 #include "CellServer.h"
 #include "CellTask.h"
+#include "CellThread.h"
 
 #include <vector>
 #include <mutex>
@@ -17,11 +18,6 @@
 
 typedef std::shared_ptr<CellClient> ClientSocktPtr;
 class CellServer;
-
-//网络事件接口
-
-
-
 
 class SimpleServer : public INetEvent
 {
@@ -36,7 +32,7 @@ public:
 	void Close();
 
 	//运行
-	int onRun();
+	int onRun(CellThread* pthread);
 	//判断是否运行
 	bool isRun();
 	int Accept();
@@ -65,6 +61,7 @@ protected:
 	//客户端计数
 	std::atomic_int _clientCount;
 	Timestamp _tTime;
+	CellThread _thread;
 };
 
 #endif // !1

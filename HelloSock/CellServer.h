@@ -1,9 +1,18 @@
-#ifndef _INET_EVENT_H_
-#define _INET_EVENT_H_
+#ifndef _CELLSERVER_H_
+#define _CELLSERVER_H_
 
 #include "CellCommon.h"
 #include "CellClient.h"
-#include "CellSemaphore.h"
+#include "CellThread.h"
+
+#include "CellCommon.h"
+#include "CellClient.h"
+#include "CellServer.h"
+#include "CellTask.h"
+#include "Timestamp.h"
+#include <map>
+#include <vector>
+
 typedef std::shared_ptr<CellClient> ClientSocktPtr;
 
 class CellServer;
@@ -23,20 +32,6 @@ private:
 
 };
 
-#endif // !_INET_EVENT_H_
-
-
-#ifndef _CELLSERVER_H_
-#define _CELLSERVER_H_
-
-#include "CellCommon.h"
-#include "CellClient.h"
-#include "CellServer.h"
-#include "CellTask.h"
-#include "Timestamp.h"
-#include <map>
-#include <vector>
-
 typedef std::shared_ptr<CellClient> ClientSocktPtr;
 
 class CellServer
@@ -45,13 +40,11 @@ public:
 	CellServer(SOCKET& sock);
 	~CellServer();
 
-	int onRun();
+	int onRun(CellThread* pthread);
 	void checkTime();
 	int recvData(ClientSocktPtr recvBuf);
 	virtual void OnNetMsg(ClientSocktPtr pClient, DataHeader* header);
 	int getCount();
-	//≈–∂œ «∑Ò‘À––
-	bool isRun();
 	void addClient(ClientSocktPtr pClient);
 	void setEventObj(INetEvent* event);
 	void start();
@@ -63,14 +56,13 @@ private:
 	std::vector<ClientSocktPtr> _clientBuf;
 	std::mutex _mutex_client_buf;
 	std::mutex _mutex_client;
-	std::thread _thread;
 	SOCKET _sock;
 	SOCKET max_fd = 0;
 	fd_set read_set;
 	INetEvent* _pNetEvent;
 	CellTaskServer _taskServer;
 	time_t _oldTime;
-	CellSemaphore _sem;
+	CellThread _thread;
 
 };
 

@@ -152,6 +152,7 @@
     <ClCompile Include="CellSemaphore.cpp" />
     <ClCompile Include="CellServer.cpp" />
     <ClCompile Include="CellTask.cpp" />
+    <ClCompile Include="CellThread.cpp" />
     <ClCompile Include="MemoryPool.cpp" />
     <ClCompile Include="server.cpp" />
     <ClCompile Include="SimpleServer.cpp" />
@@ -164,6 +165,7 @@
     <ClInclude Include="CellSemaphore.h" />
     <ClInclude Include="CellServer.h" />
     <ClInclude Include="CellTask.h" />
+    <ClInclude Include="CellThread.h" />
     <ClInclude Include="MemoryPool.h" />
     <ClInclude Include="ObjectPool.h" />
     <ClInclude Include="SimpleServer.h" />

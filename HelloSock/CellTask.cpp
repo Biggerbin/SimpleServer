@@ -8,19 +8,19 @@ void CellTaskServer::addTask(CellTask task)
 
 void CellTaskServer::start()
 {
-	std::thread t(std::mem_fn(&CellTaskServer::onRun), this);
-	t.detach();
+	_thread.Start(nullptr, [this](CellThread* pthread) {
+		onRun(pthread);
+	}, nullptr);
 }
 
 void CellTaskServer::close()
 {
-	_isRun = false;
-	_sem.acquire();
+	_thread.Close();
 }
 
-void CellTaskServer::onRun()
+void CellTaskServer::onRun(CellThread* pthread)
 {
-	while (_isRun) {
+	while (pthread->isRun()) {
 		if (!_tasksBuf.empty()) {
 			std::lock_guard<std::mutex> lock(_mutex);
 			for (auto& ptask : _tasksBuf) {
@@ -38,5 +38,4 @@ void CellTaskServer::onRun()
 		}
 		_tasks.clear();
 	}
-	_sem.release();
 }

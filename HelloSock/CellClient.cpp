@@ -10,10 +10,7 @@ CellClient::CellClient(SOCKET cliSock) {
 
 CellClient::~CellClient()
 {
-	printf("cellclient...1\n");
-
 	closesocket(_cli_sock);
-	printf("cellclient...2\n");
 
 }
 
