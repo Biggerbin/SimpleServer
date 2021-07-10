@@ -47,12 +47,23 @@ SOCKET SimpleServer::InitSocket(int port)
 void SimpleServer::Close()
 {
 	if (isRun()) {
+		for (auto ser : _cellServers)
+		{
+			delete ser;
+		}
+		_cellServers.clear();
 #ifdef WIN32
 			closesocket(_sock);
+			WSACleanup();
 #else
 			close(sock);
 #endif // WIN32
 			_sock = INVALID_SOCKET;
+	}
+	for (auto it : _cellServers) {
+		delete it;
+		printf("deleted...\n");
+
 	}
 
 }
@@ -60,34 +71,30 @@ void SimpleServer::Close()
 int SimpleServer::onRun()
 {
 	FD_SET(_sock, &read_set);
-	while (isRun()) {
-		time4msg();
-		fd_set tmp_set = read_set;
-		timeval t = { 0, 0 };
-		int num = select(_sock + 1, &tmp_set, NULL, NULL, &t);
-		if (num < 0) {
-			printf("select 调用失败...\n");
-			Close();
+	time4msg();
+	fd_set tmp_set = read_set;
+	timeval t = { 0, 0 };
+	int num = select(_sock + 1, &tmp_set, NULL, NULL, &t);
+	if (num < 0) {
+		printf("select 调用失败...\n");
+		Close();
+		return -1;
+	}
+	if (FD_ISSET(_sock, &tmp_set)) {
+		if (-1 == Accept()) {
 			return -1;
 		}
-		if (FD_ISSET(_sock, &tmp_set)) {
-			if (-1 == Accept()) {
-				return -1;
+		/*NewUser newuser;
+		newuser.result = 1;
+		newuser.sock = _cli_sock;
+		for (int i = 0; i < client_sockfd.size(); ++i) {
+			if (FD_ISSET(client_sockfd[i]->_cli_sock, &read_set) && client_sockfd[i]->_cli_sock != _sock) {
+				send(client_sockfd[i]->_cli_sock, (const char*)&newuser, newuser.data_length, 0);
 			}
-			/*NewUser newuser;
-			newuser.result = 1;
-			newuser.sock = _cli_sock;
-			for (int i = 0; i < client_sockfd.size(); ++i) {
-				if (FD_ISSET(client_sockfd[i]->_cli_sock, &read_set) && client_sockfd[i]->_cli_sock != _sock) {
-					send(client_sockfd[i]->_cli_sock, (const char*)&newuser, newuser.data_length, 0);
-				}
-			}*/
-			return 0;
-		}
+		}*/
+		return 0;
+	}
 }
-return -1;
-}
-
 bool SimpleServer::isRun()
 {
 	return _sock != INVALID_SOCKET;

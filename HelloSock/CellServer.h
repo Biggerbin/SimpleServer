@@ -3,6 +3,7 @@
 
 #include "CellCommon.h"
 #include "CellClient.h"
+#include "CellSemaphore.h"
 typedef std::shared_ptr<CellClient> ClientSocktPtr;
 
 class CellServer;
@@ -41,7 +42,7 @@ typedef std::shared_ptr<CellClient> ClientSocktPtr;
 class CellServer
 {
 public:
-	CellServer(SOCKET sock);
+	CellServer(SOCKET& sock);
 	~CellServer();
 
 	int onRun();
@@ -69,6 +70,7 @@ private:
 	INetEvent* _pNetEvent;
 	CellTaskServer _taskServer;
 	time_t _oldTime;
+	CellSemaphore _sem;
 
 };
 

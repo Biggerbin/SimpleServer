@@ -12,9 +12,15 @@ void CellTaskServer::start()
 	t.detach();
 }
 
+void CellTaskServer::close()
+{
+	_isRun = false;
+	_sem.acquire();
+}
+
 void CellTaskServer::onRun()
 {
-	while (true) {
+	while (_isRun) {
 		if (!_tasksBuf.empty()) {
 			std::lock_guard<std::mutex> lock(_mutex);
 			for (auto& ptask : _tasksBuf) {
@@ -32,4 +38,5 @@ void CellTaskServer::onRun()
 		}
 		_tasks.clear();
 	}
+	_sem.release();
 }

@@ -1,7 +1,7 @@
 #include "CellServer.h"
 
 
-CellServer::CellServer(SOCKET sock)
+CellServer::CellServer(SOCKET& sock)
 {
 	_sock = sock;
 	_pNetEvent = nullptr;
@@ -11,8 +11,10 @@ CellServer::CellServer(SOCKET sock)
 
 CellServer::~CellServer()
 {
+	printf("cellserver...1\n");
 	Close();
-	_sock = INVALID_SOCKET;
+	printf("cellserver...2\n");
+
 }
 
 int CellServer::onRun()
@@ -68,12 +70,14 @@ int CellServer::onRun()
 		}
 		for (auto sock : temp)
 		{
+			std::lock_guard<std::mutex> lg(_mutex_client);
 			_client.erase(sock);
 			
 		}
 		//心跳
 		checkTime();
 	}
+	_sem.release();
 	return 0;
 }
 
@@ -93,6 +97,7 @@ void CellServer::checkTime()
 			iter = _client.erase(iter);
 			continue;
 		}
+		iter->second->checkSend(dt);
 		iter++;
 	}
 }
@@ -165,6 +170,7 @@ void CellServer::setEventObj(INetEvent * event)
 void CellServer::start()
 {
 	_thread = std::thread(std::mem_fn(&CellServer::onRun), this);
+	_thread.detach();
 	_taskServer.start();
 }
 
@@ -177,23 +183,10 @@ void CellServer::addSendTask(ClientSocktPtr pClient, dataHeaderPtr header)
 
 void CellServer::Close()
 {
-	if (_sock != INVALID_SOCKET)
-	{
-#ifdef _WIN32
-		for (auto iter : _client)
-		{
-			closesocket(iter.first);
-		}
-		//关闭套节字closesocket
-		closesocket(_sock);
-#else
-		for (auto iter : _clients)
-		{
-			close(iter.first);
-		}
-		//关闭套节字closesocket
-		close(_sock);
-#endif
-		_client.clear();
-	}
+	printf("cellserver close...1\n");
+	_taskServer.close();
+	_sock = INVALID_SOCKET;
+	_sem.acquire();
+	printf("cellserver close...2\n");
+
 }

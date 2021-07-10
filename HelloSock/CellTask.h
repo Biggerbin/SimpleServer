@@ -5,6 +5,7 @@
 #include <mutex>
 #include <list>
 #include <functional>
+#include "CellSemaphore.h"
 
 class CellTaskServer
 {
@@ -13,9 +14,13 @@ private:
 	std::list<CellTask> _tasks;
 	std::list<CellTask> _tasksBuf;
 	std::mutex _mutex;
+	CellSemaphore _sem;
+	bool _isRun = true;
+
 public:
 	void addTask(CellTask task);
 	void start();
+	void close();
 protected:
 	void onRun();
 };

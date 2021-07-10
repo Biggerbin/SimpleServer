@@ -99,10 +99,10 @@ int main() {
 	while (g_bRun)
 	{
 		server.onRun();
-		//printf("空闲时间处理其它业务..\n");
+		//
 	}
 	server.Close();
 	printf("已退出。\n");
-	getchar();
+	while (true);
 	return 0;
 }
