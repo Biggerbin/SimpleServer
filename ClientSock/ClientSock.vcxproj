@@ -151,7 +151,7 @@
     <ClCompile Include="SimpleClient.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DataHeader.hpp" />
+    <ClInclude Include="DataHeader.h" />
     <ClInclude Include="SimpleClient.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

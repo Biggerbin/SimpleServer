@@ -1,4 +1,4 @@
-#ifndef _CELLCOMMON_H_
+﻿#ifndef _CELLCOMMON_H_
 #define _CELLCOMMON_H_
 
 #ifdef _WIN32

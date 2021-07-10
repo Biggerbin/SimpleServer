@@ -1,4 +1,4 @@
-#include "SimpleServer.h"
+ï»¿#include "SimpleServer.h"
 
 SimpleServer::SimpleServer()
 {
@@ -19,7 +19,7 @@ SOCKET SimpleServer::InitSocket(int port)
 #endif // _WIN32
 	_sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (INVALID_SOCKET == _sock) {
-		printf("½¨Á¢socketÊ§°Ü");
+		printf("å»ºç«‹socketå¤±è´¥");
 		return INVALID_SOCKET;
 	}
 	struct sockaddr_in ser_addr;
@@ -32,15 +32,15 @@ SOCKET SimpleServer::InitSocket(int port)
 #endif
 
 	if (bind(_sock, (struct sockaddr *)&ser_addr, sizeof(struct sockaddr)) == SOCKET_ERROR) {
-		printf("°ó¶¨µØÖ·Ê§°Ü");
+		printf("ç»‘å®šåœ°å€å¤±è´¥");
 		return -1;
 	}
 
 	if (listen(_sock, 5) == SOCKET_ERROR) {
-		printf("¼àÌıÊ§°Ü");
+		printf("ç›‘å¬å¤±è´¥");
 		return 0;
 	}
-	printf("³õÊ¼»¯socket³É¹¦, <socket %d>\n", _sock);
+	printf("åˆå§‹åŒ–socketæˆåŠŸ, <socket %d>\n", _sock);
 	return _sock;
 }
 
@@ -76,7 +76,7 @@ int SimpleServer::onRun(CellThread* pthread)
 		timeval t = { 0, 0 };
 		int num = select(_sock + 1, &tmp_set, NULL, NULL, &t);
 		if (num < 0) {
-			printf("select µ÷ÓÃÊ§°Ü...\n");
+			printf("select è°ƒç”¨å¤±è´¥...\n");
 			Close();
 			return -1;
 		}
@@ -111,7 +111,7 @@ int SimpleServer::Accept()
 		printf("accept fail");
 		return -1;
 	}
-	//printf("new client ½¨Á¢, ip = %s, port = %d\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
+	//printf("new client å»ºç«‹, ip = %s, port = %d\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
 	std::shared_ptr<CellClient> cli_ptr(new CellClient(cli_fd));
 	addClientToCellServer(cli_ptr);
 	return 0;
@@ -147,9 +147,9 @@ void SimpleServer::Start(int pthtread_cnt)
 	for (int i = 0; i < pthtread_cnt; ++i) {
 		auto ser = new CellServer(_sock);
 		_cellServers.push_back(ser);
-		//×¢²áÍøÂçÊÂ¼ş½ÓÊÜ¶ÔÏó
+		//æ³¨å†Œç½‘ç»œäº‹ä»¶æ¥å—å¯¹è±¡
 		ser->setEventObj(this);
-		//Æô¶¯ÏûÏ¢´¦ÀíÏß³Ì
+		//å¯åŠ¨æ¶ˆæ¯å¤„ç†çº¿ç¨‹
 		ser->start();
 	}
 	_thread.Start(nullptr, [this](CellThread* pthread) {
@@ -163,14 +163,14 @@ void SimpleServer::OnNetJoin(ClientSocktPtr pClient)
 {
 	_clientCount++;
 }
-//cellServer 4 ¶à¸öÏß³Ì´¥·¢ ²»°²È«
-//Èç¹ûÖ»¿ªÆô1¸öcellServer¾ÍÊÇ°²È«µÄ
+//cellServer 4 å¤šä¸ªçº¿ç¨‹è§¦å‘ ä¸å®‰å…¨
+//å¦‚æœåªå¼€å¯1ä¸ªcellServerå°±æ˜¯å®‰å…¨çš„
 void SimpleServer::OnNetLeave(ClientSocktPtr pClient)
 {
 	_clientCount--;
 }
-//cellServer 4 ¶à¸öÏß³Ì´¥·¢ ²»°²È«
-//Èç¹ûÖ»¿ªÆô1¸öcellServer¾ÍÊÇ°²È«µÄ
+//cellServer 4 å¤šä¸ªçº¿ç¨‹è§¦å‘ ä¸å®‰å…¨
+//å¦‚æœåªå¼€å¯1ä¸ªcellServerå°±æ˜¯å®‰å…¨çš„
 void SimpleServer::OnNetMsg(CellServer* pCellServer, ClientSocktPtr pClient, DataHeader* header)
 {
 	_msgCount++;

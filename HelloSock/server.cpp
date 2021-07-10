@@ -1,4 +1,4 @@
-#include "Allocator.h"
+ï»¿#include "Allocator.h"
 #include <SimpleServer.h>
 
 class MyServer : public SimpleServer
@@ -7,21 +7,21 @@ public:
 	MyServer() {
 
 	}
-	//Ö»»á±»Ò»¸öÏß³Ì´¥·¢ °²È«
+	//åªä¼šè¢«ä¸€ä¸ªçº¿ç¨‹è§¦å‘ å®‰å…¨
 	virtual void OnNetJoin(ClientSocktPtr pClient)
 	{
 		SimpleServer::OnNetJoin(pClient);
 		//printf("client<%d> join\n", pClient->sockfd());
 	}
-	//cellServer 4 ¶à¸öÏß³Ì´¥·¢ ²»°²È«
-	//Èç¹ûÖ»¿ªÆô1¸öcellServer¾ÍÊÇ°²È«µÄ
+	//cellServer 4 å¤šä¸ªçº¿ç¨‹è§¦å‘ ä¸å®‰å…¨
+	//å¦‚æœåªå¼€å¯1ä¸ªcellServerå°±æ˜¯å®‰å…¨çš„
 	virtual void OnNetLeave(ClientSocktPtr pClient)
 	{
 		SimpleServer::OnNetLeave(pClient);
 		//printf("client<%d> leave\n", pClient->sockfd());
 	}
-	//cellServer 4 ¶à¸öÏß³Ì´¥·¢ ²»°²È«
-	//Èç¹ûÖ»¿ªÆô1¸öcellServer¾ÍÊÇ°²È«µÄ
+	//cellServer 4 å¤šä¸ªçº¿ç¨‹è§¦å‘ ä¸å®‰å…¨
+	//å¦‚æœåªå¼€å¯1ä¸ªcellServerå°±æ˜¯å®‰å…¨çš„
 	virtual void OnNetMsg(CellServer* pCellServer, ClientSocktPtr pClient, DataHeader* header)
 	{
 		SimpleServer::OnNetMsg(pCellServer, pClient, header);
@@ -31,27 +31,27 @@ public:
 		{
 			//send recv 
 			Login* login = (Login*)header;
-			//printf("ÊÕµ½¿Í»§¶Ë<Socket=%d>ÇëÇó£ºCMD_LOGIN,Êı¾İ³¤¶È£º%d,userName=%s PassWord=%s\n", cSock, login->dataLength, login->userName, login->PassWord);
-			//ºöÂÔÅĞ¶ÏÓÃ»§ÃÜÂëÊÇ·ñÕıÈ·µÄ¹ı³Ì
+			//printf("æ”¶åˆ°å®¢æˆ·ç«¯<Socket=%d>è¯·æ±‚ï¼šCMD_LOGIN,æ•°æ®é•¿åº¦ï¼š%d,userName=%s PassWord=%s\n", cSock, login->dataLength, login->userName, login->PassWord);
+			//å¿½ç•¥åˆ¤æ–­ç”¨æˆ·å¯†ç æ˜¯å¦æ­£ç¡®çš„è¿‡ç¨‹
 			//LoginResult ret;
 			//pClient->SendData(&ret);
 			std::shared_ptr<LoginResult> ret(new LoginResult());
 			//pClient->resetDTHeart();
 			pCellServer->addSendTask(pClient, ret);
-		}//½ÓÊÕ ÏûÏ¢---´¦Àí ·¢ËÍ   Éú²úÕß Êı¾İ»º³åÇø  Ïû·ÑÕß 
+		}//æ¥æ”¶ æ¶ˆæ¯---å¤„ç† å‘é€   ç”Ÿäº§è€… æ•°æ®ç¼“å†²åŒº  æ¶ˆè´¹è€… 
 		break;
 		case CMD_LOGOUT:
 		{
 			Logout* logout = (Logout*)header;
-			//printf("ÊÕµ½¿Í»§¶Ë<Socket=%d>ÇëÇó£ºCMD_LOGOUT,Êı¾İ³¤¶È£º%d,userName=%s \n", cSock, logout->dataLength, logout->userName);
-			//ºöÂÔÅĞ¶ÏÓÃ»§ÃÜÂëÊÇ·ñÕıÈ·µÄ¹ı³Ì
+			//printf("æ”¶åˆ°å®¢æˆ·ç«¯<Socket=%d>è¯·æ±‚ï¼šCMD_LOGOUT,æ•°æ®é•¿åº¦ï¼š%d,userName=%s \n", cSock, logout->dataLength, logout->userName);
+			//å¿½ç•¥åˆ¤æ–­ç”¨æˆ·å¯†ç æ˜¯å¦æ­£ç¡®çš„è¿‡ç¨‹
 			//LogoutResult ret;
 			//SendData(cSock, &ret);
 		}
 		break;
 		default:
 		{
-			printf("<socket=%d>ÊÕµ½Î´¶¨ÒåÏûÏ¢,Êı¾İ³¤¶È£º%d\n", pClient->_cli_sock, header->data_length);
+			printf("<socket=%d>æ”¶åˆ°æœªå®šä¹‰æ¶ˆæ¯,æ•°æ®é•¿åº¦ï¼š%d\n", pClient->_cli_sock, header->data_length);
 			//DataHeader ret;
 			//SendData(cSock, &ret);
 		}
@@ -77,11 +77,11 @@ bool g_bRun = true;
 //		if (0 == strcmp(cmdBuf, "exit"))
 //		{
 //			g_bRun = false;
-//			printf("ÍË³öcmdThreadÏß³Ì\n");
+//			printf("é€€å‡ºcmdThreadçº¿ç¨‹\n");
 //			break;
 //		}
 //		else {
-//			printf("²»Ö§³ÖµÄÃüÁî¡£\n");
+//			printf("ä¸æ”¯æŒçš„å‘½ä»¤ã€‚\n");
 //		}
 //	}
 //}
@@ -99,16 +99,16 @@ int main() {
 		scanf("%s", cmdBuf);
 		if (0 == strcmp(cmdBuf, "exit"))
 		{
-			printf("ÍË³öcmdThreadÏß³Ì\n");
+			printf("é€€å‡ºcmdThreadçº¿ç¨‹\n");
 			break;
 		}
 		else {
-			printf("²»Ö§³ÖµÄÃüÁî¡£\n");
+			printf("ä¸æ”¯æŒçš„å‘½ä»¤ã€‚\n");
 		}
 		
 	}
 	server.Close();
-	printf("ÒÑÍË³ö¡£\n");
+	printf("å·²é€€å‡ºã€‚\n");
 	while (true);
 	return 0;
 }

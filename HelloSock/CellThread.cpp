@@ -1,4 +1,4 @@
-#include "CellThread.h"
+﻿#include "CellThread.h"
 
 void CellThread::Start(EventCall onCreate, EventCall onRun, EventCall onDestory)
 {
@@ -14,7 +14,7 @@ void CellThread::Start(EventCall onCreate, EventCall onRun, EventCall onDestory)
 		if (onDestory)
 			_onDestory = onDestory;
 
-		//�߳�
+		//线程
 		std::thread t(std::mem_fn(&CellThread::OnWork), this);
 		t.detach();
 	}

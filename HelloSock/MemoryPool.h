@@ -1,4 +1,4 @@
-#ifndef _MemoryPool_H_
+ï»¿#ifndef _MemoryPool_H_
 #define _MemoryPool_H_
 
 #include <mutex>
@@ -11,15 +11,15 @@ class MemoryBlock
 {
 public:
 	MemoryBlock();
-	//ËùÊô´óÄÚ´æ¿é£¨³Ø£©
+	//æ‰€å±å¤§å†…å­˜å—ï¼ˆæ± ï¼‰
 	MemoryPool* _pBlock;
-	//ÏÂÒ»¿éÎ»ÖÃ
+	//ä¸‹ä¸€å—ä½ç½®
 	MemoryBlock* _pNext;
-	//ÄÚ´æ¿é±àºÅ
+	//å†…å­˜å—ç¼–å·
 	int _nID;
-	//ÒıÓÃ´ÎÊı
+	//å¼•ç”¨æ¬¡æ•°
 	int _nRef;
-	//ÊÇ·ñÔÚÄÚ´æ³ØÖĞ
+	//æ˜¯å¦åœ¨å†…å­˜æ± ä¸­
 	bool _isInPool;				
 };
 
@@ -35,13 +35,13 @@ public:
 	void initMemory();
 
 protected:
-	//ÄÚ´æµØÖ·
+	//å†…å­˜åœ°å€
 	char* _pBuf;
-	//Í·²¿ÄÚ´æµ¥Ôª
+	//å¤´éƒ¨å†…å­˜å•å…ƒ
 	MemoryBlock* _pHeader;
-	//ÄÚ´æ¿é´óĞ¡
+	//å†…å­˜å—å¤§å°
 	size_t _bsize;
-	//ÄÚ´æ¿éÊıÁ¿
+	//å†…å­˜å—æ•°é‡
 	size_t _nCount;
 	std::mutex _mutex;
 };

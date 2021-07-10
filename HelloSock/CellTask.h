@@ -1,4 +1,4 @@
-#ifndef _CELLTASK_H_
+﻿#ifndef _CELLTASK_H_
 #define _CELLTASK_H_
 
 #include <thread>

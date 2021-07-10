@@ -1,4 +1,4 @@
-#ifndef H_SIMPLE_CLIENT
+ï»¿#ifndef H_SIMPLE_CLIENT
 #define H_SIMPLE_CLIENT
 
 #ifdef _WIN32
@@ -22,9 +22,9 @@
 //using namespace std;
 //using namespace std::chrono;
 struct RecvBuf {
-	//½ÓÊÕ»º³åÇø
+	//æ¥æ”¶ç¼“å†²åŒº
 	char _recvBuf1[RECV_BUF_SIZE] = {};
-	//µÚ¶ş»º³åÇø
+	//ç¬¬äºŒç¼“å†²åŒº
 	char _szMsgBuf2[RECV_BUF_SIZE * 10] = {};
 	int _lastPos = 0;
 };
@@ -34,16 +34,16 @@ class SimpleClient
 public:
 	SimpleClient();
 
-	//³õÊ¼»¯socket
+	//åˆå§‹åŒ–socket
 	SOCKET InitSocket();
-	//Á¬½Ó·şÎñÆ÷
+	//è¿æ¥æœåŠ¡å™¨
 	void Connect(std::string ip_addr, int port);
-	//¹Ø±ÕÁ´½Ó
+	//å…³é—­é“¾æ¥
 	void close();
 
-	//ÔËĞĞ
+	//è¿è¡Œ
 	int onRun();
-	//ÅĞ¶ÏÊÇ·ñÔËĞĞ
+	//åˆ¤æ–­æ˜¯å¦è¿è¡Œ
 	bool isRun();
 
 	int recvData();
@@ -53,7 +53,7 @@ public:
 private:
 	SOCKET _sock;
 	fd_set read_set;
-	//½ÓÊÕ»º³åÇø
+	//æ¥æ”¶ç¼“å†²åŒº
 	RecvBuf* _recvBuf;
 	/*high_resolution_clock::time_point t1 = high_resolution_clock::now();
 	int count = 0;*/

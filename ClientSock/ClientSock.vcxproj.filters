@@ -23,10 +23,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DataHeader.hpp">
+    <ClInclude Include="SimpleClient.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="SimpleClient.hpp">
+    <ClInclude Include="DataHeader.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

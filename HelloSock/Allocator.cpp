@@ -1,4 +1,4 @@
-#include "Allocator.h"
+﻿#include "Allocator.h"
 
 void* operator new(size_t nSize)
 {

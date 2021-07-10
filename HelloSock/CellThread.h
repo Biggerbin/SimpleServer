@@ -1,4 +1,4 @@
-#ifndef _CELLTHREAD_H_
+ï»¿#ifndef _CELLTHREAD_H_
 #define _CELLTHREAD_H_
 
 #include <functional>
@@ -10,30 +10,30 @@ class CellThread
 private:
 	typedef std::function<void(CellThread*)> EventCall;
 public:
-	//Æô¶¯Ïß³Ì
+	//å¯åŠ¨çº¿ç¨‹
 	void Start(EventCall onCreate = nullptr, EventCall onRun = nullptr, EventCall onDestory = nullptr);
 
-	//¹Ø±ÕÏß³Ì
+	//å…³é—­çº¿ç¨‹
 	void Close();
-	//ÔÚ¹¤×÷º¯ÊıÖĞÍË³ö
-	//²»ĞèÒªÊ¹ÓÃĞÅºÅÁ¿À´×èÈûµÈ´ı
-	//Èç¹ûÊ¹ÓÃ»á×èÈû
+	//åœ¨å·¥ä½œå‡½æ•°ä¸­é€€å‡º
+	//ä¸éœ€è¦ä½¿ç”¨ä¿¡å·é‡æ¥é˜»å¡ç­‰å¾…
+	//å¦‚æœä½¿ç”¨ä¼šé˜»å¡
 	void Exit();
 
-	//Ïß³ÌÊÇ·ñÆô¶¯ÔËĞĞ×´Ì¬
+	//çº¿ç¨‹æ˜¯å¦å¯åŠ¨è¿è¡ŒçŠ¶æ€
 	bool isRun();
 protected:
-	//Ïß³ÌÔËĞĞÊ±µÄ¹¤×÷º¯Êı
+	//çº¿ç¨‹è¿è¡Œæ—¶çš„å·¥ä½œå‡½æ•°
 	void OnWork();
 private:
 	EventCall _onCreate;
 	EventCall _onRun;
 	EventCall _onDestory;
-	//²»Í¬Ïß³ÌÖĞ¸Ä±äÊı¾İÊ±ĞèÒª¼ÓËø
+	//ä¸åŒçº¿ç¨‹ä¸­æ”¹å˜æ•°æ®æ—¶éœ€è¦åŠ é”
 	std::mutex _mutex;
-	//¿ØÖÆÏß³ÌµÄÖÕÖ¹¡¢ÍË³ö
+	//æ§åˆ¶çº¿ç¨‹çš„ç»ˆæ­¢ã€é€€å‡º
 	CellSemaphore _sem;
-	//Ïß³ÌÊÇ·ñÆô¶¯ÔËĞĞÖĞ
+	//çº¿ç¨‹æ˜¯å¦å¯åŠ¨è¿è¡Œä¸­
 	bool	_isRun = false;
 };
 #endif // !_CELLTHREAD_H_

@@ -1,4 +1,4 @@
-#ifndef H_DATAHEADER
+ï»¿#ifndef H_DATAHEADER
 #define H_DATAHEADER
 
 enum CMD {
@@ -54,7 +54,7 @@ struct NewUser :public DataHeader {
 	NewUser() {
 		data_length = sizeof(NewUser);
 		cmd = CMD_NEW_USER;
-		result = 0;//1ÐÂÓÃ»§µÇÂ¼£¬0ÓÃ»§ÍË³ö
+		result = 0;//1æ–°ç”¨æˆ·ç™»å½•ï¼Œ0ç”¨æˆ·é€€å‡º
 		sock = INVALID_SOCKET;
 	}
 	short result;

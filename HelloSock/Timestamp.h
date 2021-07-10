@@ -1,4 +1,4 @@
-#ifndef _H_Timestamp_hpp_
+ï»¿#ifndef _H_Timestamp_hpp_
 #define _H_Timestamp_hpp_
 
 #include<chrono>
@@ -22,27 +22,27 @@ public:
 		_begin = high_resolution_clock::now();
 	}
 
-	//»ñÈ¡µ±Ç°Ê±¼ä´Á (ºÁÃë)
+	//è·å–å½“å‰æ—¶é—´æˆ³ (æ¯«ç§’)
 	static time_t getNowInMilliSec()
 	{
 		return duration_cast<milliseconds>(high_resolution_clock::now().time_since_epoch()).count();
 	}
 	/**
-	*   »ñÈ¡µ±Ç°Ãë
+	*   è·å–å½“å‰ç§’
 	*/
 	double getElapsedSecond()
 	{
 		return  getElapsedTimeInMicroSec() * 0.000001;
 	}
 	/**
-	*   »ñÈ¡ºÁÃë
+	*   è·å–æ¯«ç§’
 	*/
 	double getElapsedTimeInMilliSec()
 	{
 		return this->getElapsedTimeInMicroSec() * 0.001;
 	}
 	/**
-	*   »ñÈ¡Î¢Ãî
+	*   è·å–å¾®å¦™
 	*/
 	long long getElapsedTimeInMicroSec()
 	{

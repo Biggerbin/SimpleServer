@@ -1,4 +1,4 @@
-#ifndef H_SIMPLE_SERVER
+ï»¿#ifndef H_SIMPLE_SERVER
 #define H_SIMPLE_SERVER
 
 #include "CellCommon.h"
@@ -24,27 +24,27 @@ class SimpleServer : public INetEvent
 public:
 	SimpleServer();
 
-	//³õÊ¼»¯socket¡¢°ó¶¨bind¡¢¼àÌılisten
+	//åˆå§‹åŒ–socketã€ç»‘å®šbindã€ç›‘å¬listen
 	SOCKET InitSocket(int port);
 	//accept
 
-	//¹Ø±ÕÁ´½Ó
+	//å…³é—­é“¾æ¥
 	void Close();
 
-	//ÔËĞĞ
+	//è¿è¡Œ
 	int onRun(CellThread* pthread);
-	//ÅĞ¶ÏÊÇ·ñÔËĞĞ
+	//åˆ¤æ–­æ˜¯å¦è¿è¡Œ
 	bool isRun();
 	int Accept();
 	void time4msg();
 	void addClientToCellServer(ClientSocktPtr pClient);
 	void Start(int pthtread_cnt);
 	virtual void OnNetJoin(ClientSocktPtr pClient);
-	//¿Í»§¶ËÀë¿ªÊÂ¼ş
+	//å®¢æˆ·ç«¯ç¦»å¼€äº‹ä»¶
 	virtual void OnNetLeave(ClientSocktPtr pClient);
-	//¿Í»§¶ËÏûÏ¢ÊÂ¼ş
+	//å®¢æˆ·ç«¯æ¶ˆæ¯äº‹ä»¶
 	virtual void OnNetMsg(CellServer* pCellServer, ClientSocktPtr pClient, DataHeader* header);
-	//recvÊÂ¼ş
+	//recväº‹ä»¶
 	virtual void OnNetRecv(ClientSocktPtr pClient);
 
 private:
@@ -54,11 +54,11 @@ private:
 	fd_set read_set;
 	std::vector<CellServer*> _cellServers;
 protected:
-	//SOCKET recv¼ÆÊı
+	//SOCKET recvè®¡æ•°
 	std::atomic_int _recvCount;
-	//ÊÕµ½ÏûÏ¢¼ÆÊı
+	//æ”¶åˆ°æ¶ˆæ¯è®¡æ•°
 	std::atomic_int _msgCount;
-	//¿Í»§¶Ë¼ÆÊı
+	//å®¢æˆ·ç«¯è®¡æ•°
 	std::atomic_int _clientCount;
 	Timestamp _tTime;
 	CellThread _thread;

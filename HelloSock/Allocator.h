@@ -1,4 +1,4 @@
-#include "MemoryPool.h"
+﻿#include "MemoryPool.h"
 #ifndef _ALLOCATOR_H_
 #define _ALLOCATOR_H_
 void* operator new(size_t size);

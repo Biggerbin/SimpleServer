@@ -1,4 +1,4 @@
-#include "CellServer.h"
+ï»¿#include "CellServer.h"
 
 
 CellServer::CellServer(SOCKET& sock)
@@ -51,7 +51,7 @@ int CellServer::onRun(CellThread* pthread)
 		int num = select(max_fd + 1, &tmp_set, NULL, NULL, &t);
 		if (num < 0) {
 			printf("%d", tmp_set);
-			printf("select<pthread = %d>...%d µ÷ÓÃÊ§°Ü...\n", std::this_thread::get_id(), max_fd);
+			printf("select<pthread = %d>...%d è°ƒç”¨å¤±è´¥...\n", std::this_thread::get_id(), max_fd);
 			Close();
 			return -1;
 		}
@@ -74,7 +74,7 @@ int CellServer::onRun(CellThread* pthread)
 			_client.erase(sock);
 			
 		}
-		//ÐÄÌø
+		//å¿ƒè·³
 		checkTime();
 	}
 	return 0;
@@ -82,7 +82,7 @@ int CellServer::onRun(CellThread* pthread)
 
 void CellServer::checkTime()
 {
-	//µ±Ç°Ê±¼ä´Á
+	//å½“å‰æ—¶é—´æˆ³
 	auto nowTime = Timestamp::getNowInMilliSec();
 	auto dt = nowTime - _oldTime;
 	_oldTime = nowTime;
@@ -106,7 +106,7 @@ int CellServer::recvData(ClientSocktPtr pClient)
 	_pNetEvent->OnNetRecv(pClient);
 	int len = recv(pClient->_cli_sock, (char*)pClient->_recvBuf1, sizeof(RECV_BUF_SIZE), 0);
 	if (len <= 0) {
-		printf("client<socket %d> ÍË³ö...\n", pClient->_cli_sock);
+		printf("client<socket %d> é€€å‡º...\n", pClient->_cli_sock);
 		/*NewUser newuser;
 		newuser.result = 0;
 		newuser.sock = recvBuf->_cli_sock;

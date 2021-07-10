@@ -1,4 +1,4 @@
-#include "CellSemaphore.h"
+﻿#include "CellSemaphore.h"
 
 void CellSemaphore::release()
 {

@@ -1,4 +1,4 @@
-#ifndef _CELLSERVER_H_
+ï»¿#ifndef _CELLSERVER_H_
 #define _CELLSERVER_H_
 
 #include "CellCommon.h"
@@ -19,14 +19,14 @@ class CellServer;
 class INetEvent
 {
 public:
-	//´¿Ğéº¯Êı
-	//¿Í»§¶Ë¼ÓÈëÊÂ¼ş
+	//çº¯è™šå‡½æ•°
+	//å®¢æˆ·ç«¯åŠ å…¥äº‹ä»¶
 	virtual void OnNetJoin(ClientSocktPtr pClient) = 0;
-	//¿Í»§¶ËÀë¿ªÊÂ¼ş
+	//å®¢æˆ·ç«¯ç¦»å¼€äº‹ä»¶
 	virtual void OnNetLeave(ClientSocktPtr pClient) = 0;
-	//¿Í»§¶ËÏûÏ¢ÊÂ¼ş
+	//å®¢æˆ·ç«¯æ¶ˆæ¯äº‹ä»¶
 	virtual void OnNetMsg(CellServer*, ClientSocktPtr pClient, DataHeader* header) = 0;
-	//recvÊÂ¼ş
+	//recväº‹ä»¶
 	virtual void OnNetRecv(ClientSocktPtr pClient) = 0;
 private:
 

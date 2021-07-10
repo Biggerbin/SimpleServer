@@ -1,4 +1,4 @@
-#ifndef _CELLCLIENT_H_
+ï»¿#ifndef _CELLCLIENT_H_
 #define _CELLCLIENT_H_
 #define CLIENT_HREAT_DEAD_TIME 5000
 #define CLIENT_SEND_MSG_TIEM 200
@@ -16,15 +16,15 @@ public:
 	bool checkSend(time_t dt);
 	void resetDTSend();
 	int _cli_sock;
-	//½ÓÊÕ»º³åÇø
+	//æ¥æ”¶ç¼“å†²åŒº
 	char _recvBuf1[RECV_BUF_SIZE];
-	//µÚ¶ş»º³åÇø
+	//ç¬¬äºŒç¼“å†²åŒº
 	char _szMsgBuf2[RECV_BUF_SIZE * 10];
 	int _lastPos;
 
-	//µÚ¶ş»º³åÇø ·¢ËÍ»º³åÇø
+	//ç¬¬äºŒç¼“å†²åŒº å‘é€ç¼“å†²åŒº
 	char _szSendBuf[SEND_BUFF_SZIE];
-	//·¢ËÍ»º³åÇøµÄÊı¾İÎ²²¿Î»ÖÃ
+	//å‘é€ç¼“å†²åŒºçš„æ•°æ®å°¾éƒ¨ä½ç½®
 	int _lastSendPos = 0;
 	time_t _dtHeart;
 	time_t _dtSend;

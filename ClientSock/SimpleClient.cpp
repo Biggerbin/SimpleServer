@@ -1,4 +1,4 @@
-#include "SimpleClient.hpp"
+ï»¿#include "SimpleClient.hpp"
 
 SimpleClient::SimpleClient()
 {
@@ -17,10 +17,10 @@ SOCKET SimpleClient::InitSocket()
 #endif // _WIN32
 	_sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (!isRun()) {
-		printf("½¨Á¢socketÊ§°Ü...\n");
+		printf("å»ºç«‹socketå¤±è´¥...\n");
 		return INVALID_SOCKET;
 	}
-	//printf("³É¹¦½¨Á¢socket...\n");
+	//printf("æˆåŠŸå»ºç«‹socket...\n");
 	FD_SET(_sock, &read_set);
 	return _sock;
 }
@@ -39,10 +39,10 @@ void SimpleClient::Connect(std::string ip_addr, int port)
 
 	int ret = connect(_sock, (struct sockaddr *)&ser_addr, sizeof(struct sockaddr));
 	if (ret == SOCKET_ERROR) {
-		printf("Á¬½Ó·şÎñÆ÷Ê§°Ü...\n");
+		printf("è¿æ¥æœåŠ¡å™¨å¤±è´¥...\n");
 		return;
 	}
-	//printf("³É¹¦Á¬½Ó·şÎñÆ÷...\n");
+	//printf("æˆåŠŸè¿æ¥æœåŠ¡å™¨...\n");
 
 }
 
@@ -70,12 +70,12 @@ int SimpleClient::onRun()
 		int num = (int)select(_sock + 1, &tmp_set, NULL, NULL, &t);
 		if (num < 0) {
 			close();
-			printf("Óë·şÎñÆ÷Á¬½Ó½áÊø...\n");
+			printf("ä¸æœåŠ¡å™¨è¿æ¥ç»“æŸ...\n");
 			return -1;
 		}
 		if (FD_ISSET(_sock, &tmp_set)) {
 			if (-1 == recvData()) {
-				printf("<socket %d>Óë·şÎñÆ÷Á¬½Ó½áÊø...\n", _sock);
+				printf("<socket %d>ä¸æœåŠ¡å™¨è¿æ¥ç»“æŸ...\n", _sock);
 				return -1;
 			}
 		}
@@ -91,7 +91,7 @@ bool SimpleClient::isRun()
 
 int SimpleClient::recvData()
 {
-	//½â¾öÕ³°üÎÊÌâ
+	//è§£å†³ç²˜åŒ…é—®é¢˜
 	
 	int len = recv(_sock, (char*)_recvBuf->_recvBuf1, sizeof(RECV_BUF_SIZE), 0);
 	if (len <= 0) {
@@ -120,7 +120,7 @@ int SimpleClient::recvData()
 
 int SimpleClient::onNetMsg(DataHeader* dataheader)
 {
-	//²âÊÔ
+	//æµ‹è¯•
 	/*count++;
 	auto t2 = high_resolution_clock::now();
 	duration<double, ratio<1, 1000>> fp_ms = t2 - t1;
@@ -133,23 +133,23 @@ int SimpleClient::onNetMsg(DataHeader* dataheader)
 	return 0;*/
 	if (CMD_LOGIN_RESULT == dataheader->cmd) {
 		LoginResult* result = (LoginResult *)dataheader;
-		printf("ÊÕµ½µÇÂ½·´À¡½á¹û: %d£¬ ÃüÁî³¤¶ÈÎª%d\n", result->result, result->data_length);
+		printf("æ”¶åˆ°ç™»é™†åé¦ˆç»“æœ: %dï¼Œ å‘½ä»¤é•¿åº¦ä¸º%d\n", result->result, result->data_length);
 	}
 	else if (CMD_LOGOUT_RESULT == dataheader->cmd) {
 		LogoutResult* result = (LogoutResult *)dataheader;
-		printf("ÊÕµ½ÍË³ö·´À¡½á¹û: %d£¬ ÃüÁî³¤¶ÈÎª%d\n", result->result, result->data_length);
+		printf("æ”¶åˆ°é€€å‡ºåé¦ˆç»“æœ: %dï¼Œ å‘½ä»¤é•¿åº¦ä¸º%d\n", result->result, result->data_length);
 	}
 	else if (CMD_NEW_USER == dataheader->cmd) {
 		NewUser* result = (NewUser *)dataheader;
 		if (result->result) {
-			printf("ĞÂÓÃ»§µÇÂ¼<%d>£¬ ÃüÁî³¤¶ÈÎª%d\n", result->sock, result->data_length);
+			printf("æ–°ç”¨æˆ·ç™»å½•<%d>ï¼Œ å‘½ä»¤é•¿åº¦ä¸º%d\n", result->sock, result->data_length);
 		}
 		else {
-			printf("ÓÃ»§ÍË³ö<%d>£¬ ÃüÁî³¤¶ÈÎª%d\n", result->sock, result->data_length);
+			printf("ç”¨æˆ·é€€å‡º<%d>ï¼Œ å‘½ä»¤é•¿åº¦ä¸º%d\n", result->sock, result->data_length);
 		}	
 	}
 	else {
-		printf("ÎŞ·¨Ê¶±ğ·´À¡...\n");
+		printf("æ— æ³•è¯†åˆ«åé¦ˆ...\n");
 	}
 
 	return 0;

@@ -1,4 +1,4 @@
-#define _CRT_SECURE_NO_WARNINGS
+ï»¿#define _CRT_SECURE_NO_WARNINGS
 #include <SimpleClient.hpp>
 #include <thread>
 #include <atomic>
@@ -14,26 +14,26 @@ void cmdThread()
 		if (0 == strcmp(cmdBuf, "exit"))
 		{
 			g_bRun = false;
-			printf("ÍË³öcmdThreadÏß³Ì\n");
+			printf("é€€å‡ºcmdThreadçº¿ç¨‹\n");
 			break;
 		}
 		else {
-			printf("²»Ö§³ÖµÄÃüÁî¡£\n");
+			printf("ä¸æ”¯æŒçš„å‘½ä»¤ã€‚\n");
 		}
 	}
 }
-//¿Í»§¶ËÊıÁ¿
+//å®¢æˆ·ç«¯æ•°é‡
 const int cCount = 100;
-//·¢ËÍÏß³ÌÊıÁ¿
+//å‘é€çº¿ç¨‹æ•°é‡
 const int tCount = 2;
-//¿Í»§¶ËÊı×é
+//å®¢æˆ·ç«¯æ•°ç»„
 SimpleClient* client[cCount];
 std::atomic_int sendCount = 0;
 std::atomic_int readyCount = 0;
 void sendThread(int id)
 {
 	printf("thread<%d>,start\n", id);
-	//4¸öÏß³Ì ID 1~4
+	//4ä¸ªçº¿ç¨‹ ID 1~4
 	int c = cCount / tCount;
 	int begin = (id - 1) * c;
 	int end = id * c;
@@ -52,7 +52,7 @@ void sendThread(int id)
 
 	readyCount++;
 	while (readyCount < tCount)
-	{//µÈ´ıÆäËüÏß³Ì×¼±¸ºÃ·¢ËÍÊı¾İ
+	{//ç­‰å¾…å…¶å®ƒçº¿ç¨‹å‡†å¤‡å¥½å‘é€æ•°æ®
 		std::chrono::milliseconds t(10);
 		std::this_thread::sleep_for(t);
 	}
@@ -95,7 +95,7 @@ void process(SimpleClient* simple_client) {
 		scanf_s("%s", &send_buf, 128);
 		if (0 == strcmp(send_buf, "quit")) {
 			simple_client->close();
-			printf("Ïß³ÌÍË³ö...");
+			printf("çº¿ç¨‹é€€å‡º...");
 			return;
 		}
 		else if (0 == strcmp(send_buf, "logout")) {
@@ -111,7 +111,7 @@ void process(SimpleClient* simple_client) {
 			simple_client->sendData(login);
 		}
 		else {
-			printf("ÖØĞÂÊäÈë...\n");
+			printf("é‡æ–°è¾“å…¥...\n");
 		}*/
 	}
 }
@@ -120,7 +120,7 @@ int main() {
 	std::thread t1(cmdThread);
 	t1.detach();
 
-	//Æô¶¯·¢ËÍÏß³Ì
+	//å¯åŠ¨å‘é€çº¿ç¨‹
 	for (int n = 0; n < tCount; n++)
 	{
 		std::thread t2(sendThread, n + 1);
@@ -128,6 +128,6 @@ int main() {
 	}
 	while (g_bRun);
 
-	printf("ÒÑÍË³ö¡£\n");
+	printf("å·²é€€å‡ºã€‚\n");
 	return 0;
 }

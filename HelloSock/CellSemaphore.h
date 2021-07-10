@@ -1,4 +1,4 @@
-#ifndef _CELLSEMAPHORE_H_
+ï»¿#ifndef _CELLSEMAPHORE_H_
 #define _CELLSEMAPHORE_H_
 
 #include <condition_variable>
@@ -12,13 +12,13 @@ public:
 	void acquire();
 
 private:
-	//¸Ä±äÊı¾İ»º³åÇøÊ±ĞèÒª¼ÓËø
+	//æ”¹å˜æ•°æ®ç¼“å†²åŒºæ—¶éœ€è¦åŠ é”
 	std::mutex _mutex;
-	//×èÈûµÈ´ı-Ìõ¼ş±äÁ¿
+	//é˜»å¡ç­‰å¾…-æ¡ä»¶å˜é‡
 	std::condition_variable _cv;
-	//µÈ´ı¼ÆÊı
+	//ç­‰å¾…è®¡æ•°
 	int _wait = 0;
-	//»½ĞÑ¼ÆÊı
+	//å”¤é†’è®¡æ•°
 	int _wakeup = 0;
 };
 
