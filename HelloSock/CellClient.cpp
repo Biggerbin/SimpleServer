@@ -1,56 +1,68 @@
 ﻿#include "CellClient.h"
 
 
-CellClient::CellClient(SOCKET cliSock) {
-	_recvBuf1[RECV_BUF_SIZE] = {};
-	_szMsgBuf2[RECV_BUF_SIZE * 10] = {};
-	_lastPos = 0;
+CellClient::CellClient(SOCKET cliSock) :
+	_recvBuff(RECV_BUF_SIZE),
+	_sendBuff(SEND_BUFF_SZIE)
+{
+	static int n = 1;
+	id = n++;
 	_cli_sock = cliSock;
+
+	resetDTHeart();
+	resetDTSend();
 }
 
 CellClient::~CellClient()
 {
-	closesocket(_cli_sock);
+	CellLog::Info("s=%d CELLClient%d.~CELLClient\n", serverId, id);
+	if (INVALID_SOCKET != _cli_sock)
+	{
+#ifdef _WIN32
+		closesocket(_cli_sock);
+#else
+		close(_cli_sock);
+#endif
+		_cli_sock = INVALID_SOCKET;
+	}
+}
 
+bool CellClient::hasMsg()
+{
+	return _recvBuff.hasMsg();
+}
+
+DataHeader * CellClient::front_msg()
+{
+	return (DataHeader*)_recvBuff.getData();
+}
+
+void CellClient::pop_front_msg()
+{
+	if (hasMsg()) {
+		_recvBuff.pop(front_msg()->data_length);
+	}
+}
+
+int CellClient::recvData()
+{
+	return _recvBuff.read4socket(_cli_sock);
 }
 
 int CellClient::SendReal()
 {
-	if (_lastSendPos > 0) {
-		int ret = send(_cli_sock, _szSendBuf, _lastSendPos, 0);
-		if (ret == SOCKET_ERROR) {
-			return -1;
-		}
-		_lastSendPos = 0;
-		resetDTSend();
-	}
-	return 0;
+	resetDTSend();
+	return _sendBuff.write2socket(_cli_sock);
 }
 
 
 int CellClient::SendData(dataHeaderPtr header)
 {
-	int ret = SOCKET_ERROR;
-	int nSendLen = header->data_length;
-	const char* pSendData = (char*)header.get();
-	while (true) {
-		if (_lastSendPos + nSendLen >= SEND_BUFF_SZIE) {
-			int nCopyLen = SEND_BUFF_SZIE - _lastSendPos;
-			memcpy(_szSendBuf + _lastSendPos, pSendData, nCopyLen);
-			pSendData += nCopyLen;
-			nSendLen -= nCopyLen;
-			ret = send(_cli_sock, _szSendBuf, SEND_BUFF_SZIE, 0);
-			_lastSendPos = 0;
-			if (SOCKET_ERROR == ret) {
-				return ret;
-			}
-		}
-		else {
-			memcpy(_szSendBuf + _lastSendPos, pSendData, nSendLen);
-			_lastSendPos += nSendLen;
-			break;
-		}
+	if (_sendBuff.push((const char*)&(*header), header->data_length))
+	{
+		return header->data_length;
 	}
+	return SOCKET_ERROR;
 
 }
 
@@ -58,7 +70,7 @@ bool CellClient::checkHeart(time_t dt)
 {
 	_dtHeart += dt;
 	if (_dtHeart >= CLIENT_HREAT_DEAD_TIME) {
-		printf("checkHeart dead:s=%d,time=%d\n", _cli_sock, _dtHeart);
+		CellLog::Info("checkHeart dead:s=%d,time=%ld\n", _cli_sock, _dtHeart);
 		return true;
 	}
 	return false;
@@ -73,7 +85,7 @@ bool CellClient::checkSend(time_t dt)
 {
 	_dtSend += dt;
 	if (_dtSend >= CLIENT_SEND_MSG_TIEM) {
-		printf("checkSend dead:s=%d,time=%d\n", _cli_sock, _dtSend);
+		CellLog::Info("checkSend:s=%d,time=%d\n", _cli_sock, _dtSend);
 		SendReal();
 		resetDTSend();
 		return true;

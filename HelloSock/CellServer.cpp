@@ -1,32 +1,29 @@
 ﻿#include "CellServer.h"
 
 
-CellServer::CellServer(SOCKET& sock)
+CellServer::CellServer(int id)
 {
-	_sock = sock;
+	_id = id;
 	_pNetEvent = nullptr;
 	_oldTime = Timestamp::getNowInMilliSec();
+	_taskServer.serverId = id;
 
 }
 
 CellServer::~CellServer()
 {
-	printf("cellserver...1\n");
+	CellLog::Info("CELLServer%d.~CELLServer exit begin\n", _id);
 	Close();
-	printf("cellserver...2\n");
-
+	CellLog::Info("CELLServer%d.~CELLServer exit end\n", _id);
 }
 
 int CellServer::onRun(CellThread* pthread)
 {
-	FD_ZERO(&read_set);
-
 	while (pthread->isRun()){
 		if (!_clientBuf.empty()) {
 			std::lock_guard<std::mutex> lg(_mutex_client);
 			for (auto iter : _clientBuf) {
 				_client[iter->_cli_sock] = iter;
-
 			}
 			_clientBuf.clear();
 		}
@@ -36,48 +33,72 @@ int CellServer::onRun(CellThread* pthread)
 			_oldTime = Timestamp::getNowInMilliSec();
 			continue;
 		}
-		FD_ZERO(&read_set);
+		FD_ZERO(&rw_set);
 		for (auto iter : _client)
 		{
 			if (max_fd < iter.first)
 			{
 				max_fd = iter.first;
 			}
-			FD_SET(iter.first, &read_set);
+			FD_SET(iter.first, &rw_set);
 		}
 
-		fd_set tmp_set = read_set;
-		timeval t = { 0, 0 };
-		int num = select(max_fd + 1, &tmp_set, NULL, NULL, &t);
+		fd_set read_set = rw_set;
+		fd_set write_set = rw_set;
+		timeval t = {0, 1};
+		int num = select(max_fd + 1, &read_set, &write_set, NULL, &t);
 		if (num < 0) {
-			printf("%d", tmp_set);
-			printf("select<pthread = %d>...%d 调用失败...\n", std::this_thread::get_id(), max_fd);
+			CellLog::Info("CELLServer%d.OnRun.select Error exit\n", _id);
 			Close();
 			return -1;
 		}
 		
 		if (num == 0) continue;
-		std::vector<SOCKET> temp;
-		for (auto& iter : _client) {
-			if (FD_ISSET(iter.first, &tmp_set)) {
-				//iter.second->resetDTHeart();
-				if (-1 == recvData(iter.second)) {
-					if (_pNetEvent)
-						_pNetEvent->OnNetLeave(iter.second);
-					temp.push_back(iter.first);
-				}
-			}
-		}
-		for (auto sock : temp)
-		{
-			std::lock_guard<std::mutex> lg(_mutex_client);
-			_client.erase(sock);
-			
-		}
+		readData(read_set);
+		writeData(write_set);
 		//心跳
 		checkTime();
 	}
 	return 0;
+}
+
+void CellServer::readData(fd_set read_set)
+{
+	std::vector<SOCKET> temp;
+	for (auto& iter : _client) {
+		if (FD_ISSET(iter.first, &read_set)) {
+			if (-1 == recvData(iter.second)) {
+				if (_pNetEvent)
+					_pNetEvent->OnNetLeave(iter.second);
+				temp.push_back(iter.first);
+			}
+		}
+	}
+	for (auto sock : temp)
+	{
+		std::lock_guard<std::mutex> lg(_mutex_client);
+		_client.erase(sock);
+
+	}
+}
+
+void CellServer::writeData(fd_set write_set)
+{
+	std::vector<SOCKET> temp;
+	for (auto& iter : _client) {
+		if (FD_ISSET(iter.first, &write_set)) {
+			if (-1 == iter.second->SendReal()) {
+				if (_pNetEvent)
+					_pNetEvent->OnNetLeave(iter.second);
+				temp.push_back(iter.first);
+			}
+		}
+	}
+	for (auto sock : temp)
+	{
+		std::lock_guard<std::mutex> lg(_mutex_client);
+		_client.erase(sock);
+	}
 }
 
 void CellServer::checkTime()
@@ -96,17 +117,17 @@ void CellServer::checkTime()
 			iter = _client.erase(iter);
 			continue;
 		}
-		iter->second->checkSend(dt);
+		//iter->second->checkSend(dt);
 		iter++;
 	}
 }
 
 int CellServer::recvData(ClientSocktPtr pClient)
 {
-	_pNetEvent->OnNetRecv(pClient);
-	int len = recv(pClient->_cli_sock, (char*)pClient->_recvBuf1, sizeof(RECV_BUF_SIZE), 0);
+	
+	int len = pClient->recvData();
 	if (len <= 0) {
-		printf("client<socket %d> 退出...\n", pClient->_cli_sock);
+		CellLog::Info("client<socket %d> 退出...\n", pClient->_cli_sock);
 		/*NewUser newuser;
 		newuser.result = 0;
 		newuser.sock = recvBuf->_cli_sock;
@@ -121,29 +142,18 @@ int CellServer::recvData(ClientSocktPtr pClient)
 		client_sockfd.erase(it);*/
 		return -1;
 	}
-	pClient->resetDTHeart();
-	memcpy(pClient->_szMsgBuf2 + pClient->_lastPos, pClient->_recvBuf1, len);
-	pClient->_lastPos += len;
-
-	while (pClient->_lastPos >= sizeof(struct DataHeader)) {
-		DataHeader* dataheader = (DataHeader*)(pClient->_szMsgBuf2);
-
-		if (pClient->_lastPos >= dataheader->data_length) {
-
-			int siz = pClient->_lastPos - dataheader->data_length;
-			OnNetMsg(pClient, dataheader);
-			memcpy(pClient->_szMsgBuf2, pClient->_szMsgBuf2 + dataheader->data_length, siz);
-			pClient->_lastPos = siz;
-		}
-		else {
-			break;
-		}
+	_pNetEvent->OnNetRecv(pClient);
+	while (pClient->hasMsg()) {
+		OnNetMsg(pClient, pClient->front_msg());
+		pClient->pop_front_msg();
 	}
 	return 0;
 }
+
 void CellServer::OnNetMsg(ClientSocktPtr pClient, DataHeader* header) {
 	_pNetEvent->OnNetMsg(this, pClient, header);
 }
+
 int CellServer::getCount()
 {
 	return _client.size() + _clientBuf.size();
@@ -179,9 +189,8 @@ void CellServer::addSendTask(ClientSocktPtr pClient, dataHeaderPtr header)
 
 void CellServer::Close()
 {
-
+	CellLog::Info("CELLServer%d.Close begin\n", _id);
 	_taskServer.close();
 	_thread.Close();
-
-
+	CellLog::Info("CELLServer%d.Close end\n", _id);
 }

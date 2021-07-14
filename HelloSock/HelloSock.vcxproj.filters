@@ -42,6 +42,12 @@
     <ClCompile Include="CellThread.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="CellBuffer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CellLog.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Timestamp.h">
@@ -78,6 +84,15 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="CellThread.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CellBuffer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CellLog.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CellNetWork.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

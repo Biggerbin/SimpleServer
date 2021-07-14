@@ -15,8 +15,10 @@ private:
 	std::list<CellTask> _tasksBuf;
 	std::mutex _mutex;
 	CellThread _thread;
+	
 
 public:
+	int serverId = -1;
 	void addTask(CellTask task);
 	void start();
 	void close();

@@ -22,6 +22,8 @@
 #include "ObjectPool.h"
 #include "MemoryPool.h"
 #include "DataHeader.h"
+#include "Timestamp.h"
+#include "CellLog.h"
 
 
 

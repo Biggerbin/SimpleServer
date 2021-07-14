@@ -6,7 +6,7 @@
 #include "CellServer.h"
 #include "CellTask.h"
 #include "CellThread.h"
-
+#include "CellNetWork.h"
 #include <vector>
 #include <mutex>
 #include <thread>

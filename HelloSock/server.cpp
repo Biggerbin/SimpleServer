@@ -36,7 +36,7 @@ public:
 			//LoginResult ret;
 			//pClient->SendData(&ret);
 			std::shared_ptr<LoginResult> ret(new LoginResult());
-			//pClient->resetDTHeart();
+			pClient->resetDTHeart();
 			pCellServer->addSendTask(pClient, ret);
 		}//接收 消息---处理 发送   生产者 数据缓冲区  消费者 
 		break;
@@ -87,7 +87,7 @@ bool g_bRun = true;
 //}
 
 int main() {
-
+	CellLog::getInstance().setLogPath("../serverLog.txt", "w");
 	MyServer server;
 	server.InitSocket(8080);
 	server.Start(4);

@@ -37,10 +37,12 @@ typedef std::shared_ptr<CellClient> ClientSocktPtr;
 class CellServer
 {
 public:
-	CellServer(SOCKET& sock);
+	CellServer(int id);
 	~CellServer();
 
 	int onRun(CellThread* pthread);
+	void readData(fd_set read_set);
+	void writeData(fd_set write_set);
 	void checkTime();
 	int recvData(ClientSocktPtr recvBuf);
 	virtual void OnNetMsg(ClientSocktPtr pClient, DataHeader* header);
@@ -58,12 +60,12 @@ private:
 	std::mutex _mutex_client;
 	SOCKET _sock;
 	SOCKET max_fd = 0;
-	fd_set read_set;
+	fd_set rw_set;
 	INetEvent* _pNetEvent;
 	CellTaskServer _taskServer;
 	time_t _oldTime;
 	CellThread _thread;
-
+	int _id;
 };
 
 #endif // !_CELLSERVER_H_

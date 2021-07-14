@@ -12,11 +12,7 @@ SimpleServer::SimpleServer()
 
 SOCKET SimpleServer::InitSocket(int port)
 {
-#ifdef _WIN32
-	WORD ver = MAKEWORD(2, 2); //typedef unsigned short WORD 
-	WSADATA dat;
-	WSAStartup(ver, &dat);
-#endif // _WIN32
+	CELLNetWork::Init();
 	_sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (INVALID_SOCKET == _sock) {
 		printf("建立socket失败");
